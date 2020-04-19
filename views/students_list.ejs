@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/styles/style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+  <script type="text/javascript" charset="utf8"
+      src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+ <style>
+    .limitspace{
+                      height: 10px;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            max-width: 50px;
+                            height: 30px;
+                            text-overflow: ellipsis; 
+    }
+    
+    </style>
+</head>
+<body>
+   <section>
+            <form action="/logout" method="POST">
+            
+                <button class="btn btn-success"style="float: right" type="submit" >Logout</button>
+            
+            </form>
+
+    <header>   
+          <a href="/"> <img style="float: left" src="/logo/logo.png" alt="logo" height="40px" width="40px" ></a>
+           <h2 style="margin: 0;">Dashboard</h2>
+
+       </header>
+   
+       <%- include('sidebar') %>
+    <div class="main_content">
+     <div>  
+            <div class="form-group">
+                    <label for="main_cat">Class</label>
+                    <select name="choose_class" id="choose_class" onClick="findSection(this.value)" >
+                        <% for(var data of classes) {%>
+                            <option value="<%= data.class_id %>">
+                                     <%= data.class_name %> 
+                            </option>
+                            <%}%>
+                    </select>
+               
+                
+                    <label for="main_cat">Section</label>
+                    <select name="choose_section" id="choose_section" >
+                      <option value="">Section</option>
+                    </select>
+                    <button onclick="findStudents()">Find</button>
+                </div>
+    
+         <table id="table_id" class="display" >
+            <thead style="background-color:antiquewhite">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Roll No</th>
+                    <th>Father Name</th>
+                    <th>Mother Name</th>
+                    <th>DoB</th>
+                    <th>Address</th>
+                    <th>phone</th>
+                    <th>Edit</th>
+                    <th>Delete</th>
+        
+                </tr>
+            </thead>
+
+            <tbody id="table_test_id">
+              </tbody>
+                       </table> 
+           
+
+    
+    
+    
+    
+        </div>
+          
+    </section>     
+    <script>
+     function findSection(dataval) {
+               
+               $.ajax({
+       
+                   url: '/ajax_find_section',
+                   type: 'POST',
+                   data: { selected_class: dataval },
+                   success: function (result) {
+                       $("#choose_section option").remove();
+                                   $.each(result, function (key, value) {
+                                       $('#choose_section')
+                                           .append($("<option></option>")
+                                               .attr("value", value.class_section_id)
+                                               .text(value.section_name))
+                                   });
+                        }
+                     });
+           }
+
+
+           function findStudents() {
+    var class_section_id= $(choose_section).children("option:selected").val();
+    $.ajax({
+       
+       url: '/ajax_find_students',
+       type: 'POST',
+       data: { class_section_id: class_section_id },
+       success: function (result) {
+        console.log(result);
+        
+        $("#table_test_id td").remove();
+        $.each(result, function (index, item) {
+            var student_id = result[index].student_id;
+            var student_roll_no = result[index].student_roll_no;
+            var student_name = result[index].student_name;
+            var student_father_name= result[index].student_father_name;
+            var student_mother_name= result[index].student_mother_name;
+            var student_dob= result[index].student_dob;
+            var student_address= result[index].student_address;
+            var student_parents_phone= result[index].student_parents_phone;
+
+            $('#table_test_id').append(
+                            '<tr><td>'
+                            + (index+1)
+                            + '</td><td class="limitspace">'
+                            + student_name
+                            + '</td><td class="limitspace">'
+                                + student_roll_no
+                            + '</td><td class="limitspace">'
+                            + student_father_name
+                            + '</td><td class="limitspace">'
+                            + student_mother_name
+                            + '</td><td class="limitspace">'
+                            + student_dob
+                            + '</td><td class="limitspace">'
+                            + student_address
+                            + '</td><td>'
+                            + student_parents_phone
+                            + '</td><td>'
+                            +  '<a href="/edit-student/'+ student_id+ '">Edit</a>'
+                            + '</td><td>'
+                            +  '<a href="/delete-student/'+ student_id+ '">Delete</a>'
+                            + '</td></tr>'
+                            )
+                        }
+                        );
+                        $(document).ready(function () {
+        $('#table_id').DataTable();
+    });
+                    }
+         });
+}
+           
+
+
+        </script>
+</body>
+</html>

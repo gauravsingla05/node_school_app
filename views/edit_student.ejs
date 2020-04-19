@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/styles/style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+   <section>
+            <form action="/logout" method="POST">
+            
+                <button class="btn btn-success"style="float: right" type="submit" >Logout</button>
+            
+            </form>
+
+    <header>   
+          <a href="/"> <img style="float: left" src="/logo/logo.png" alt="logo" height="40px" width="40px" ></a>
+           <h2 style="margin: 0;">Dashboard</h2>
+       </header>
+   
+       <%- include('sidebar') %>
+    <div class="main_content">
+     <div>  
+      
+        <form class="" action="/edit-student" method="POST">
+            <div class="form-group">
+                <label for="main_cat">Class</label>
+                <select name="choose_class" id="choose_class" onClick="findSection(this.value)" >
+                    <% for(var data of classes) {%>
+                        <option value="<%= data.class_id %>">
+                                 <%= data.class_name %> 
+                        </option>
+                        <%}%>
+                </select>
+           
+            
+                <label for="main_cat">Section</label>
+                <select name="choose_section" id="choose_section" >
+                  <option value="">Section</option>
+                </select>
+            </div>
+            
+            <div>
+                <label for="student_name">Name</label>
+                <input type="text" class="form-control" id="student_name" name="student_name"
+               value="<%= result.student_name%>" required>
+                
+
+            </div> 
+        <div>
+                <label for="student_roll_no">Roll no</label>
+
+            <input type="text" class="form-control" id="student_roll_no" name="student_roll_no"
+            value="<%= result.student_roll_no%>" required>   
+        </div>
+
+        <div>
+                <label for="student_father_name">Father Name</label>
+
+            <input type="text" class="form-control" id="student_father_name" name="student_father_name"
+            value="<%= result.student_father_name%>" required>   
+        </div>
+
+        <div>
+                <label for="student_mother_name">Mother Name</label>
+
+            <input type="text" class="form-control" id="student_mother_name" name="student_mother_name"
+            value="<%= result.student_mother_name%>"required>   
+        </div>
+
+        
+        <div>
+                <label for="student_dob">Date of birth</label>
+
+            <input type="date" class="form-control" id="student_dob" name="student_dob"
+            value="<%= result.student_dob%>" required>   
+        </div>
+
+        <div>
+                <label for="student_address">Address</label>
+
+            <input type="text" class="form-control" id="student_address" name="student_address"
+            value="<%= result.student_address%>" required>   
+        </div>
+
+        <div>
+                <label for="student_parents_phone">Phone</label>
+
+            <input type="number" class="form-control" id="student_parents_phone" name="student_parents_phone"
+            value="<%= result.student_parents_phone%>" required>   
+        </div>
+
+        <div>
+            <label for="student_admsn_no">Admission No.</label>
+
+        <input type="number" class="form-control" id="student_admsn_no" name="student_admsn_no"
+            placeholder="Student's Admission Number" required>   
+        </div>
+        <div>
+            <label for="student_adhaar_no">Adhaar no.</label>
+
+        <input type="number" class="form-control" id="student_adhaar_no" name="student_adhaar_no"
+            placeholder="Student's Adhaar Number" required>   
+        </div>
+
+
+
+
+
+        <input type="hidden" name="id" value="<%= result.student_id%>">
+
+   <br>
+     <button type="submit" class="btn-success">Submit</button>
+    </br>
+        </form>
+
+     
+    </div>
+    </div>
+   
+    </section>     
+   
+<script>
+
+function findSection(dataval) {
+               
+               $.ajax({
+       
+                   url: '/ajax_find_section',
+                   type: 'POST',
+                   data: { selected_class: dataval },
+                   success: function (result) {
+                       $("#choose_section option").remove();
+                                   $.each(result, function (key, value) {
+                                       $('#choose_section')
+                                           .append($("<option></option>")
+                                               .attr("value", value.class_section_id)
+                                               .text(value.section_name))
+                                   });
+                        }
+                     });
+           }
+           
+
+</script>
+
+
+</body>
+</html>

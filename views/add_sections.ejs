@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>New Category</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/styles/style.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+    <script type="text/javascript" charset="utf8"
+        src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+   
+</head>
+<body>
+    <section>
+            <header>
+                <h2 style="margin: 0;">New Sub-Category</h2>
+            </header>
+           
+            <%- include('sidebar') %>
+                <div class="main_content">
+                
+               
+    <form class="" action="/add-section" method="POST">
+        <div class="form-group">
+            <label for="main_cat">Class</label>
+            <select name="choose_class" id="choose_class">
+                <% for(var data of result) {%>
+                    <option value="<%= data.class_id %>">
+                             <%= data.class_name %> 
+                    </option>
+                    <%}%>
+            </select>
+        </div>
+        
+        
+        <div class="form-group">
+            <label for="section_name">Section Name</label>
+            <input type="text" class="form-control" name="section_name" id="section_name" required>
+          </div>  
+    
+     
+ <button type="submit" class="btn-success">Submit</button>
+ 
+    </form>
+</div>
+<table id="table_id" class="display">
+    <thead style="background-color:rgb(255, 255, 255)">
+        <tr>
+            <th>ID</th>
+            <th>Section</th>
+            <th>Class</th>
+             <th>Delete</th>       
+        </tr>
+
+    </thead>
+
+   
+     <tbody>
+            <% for(var data of sections) { %>
+                <tr>
+                    <td><%= data.class_section_id %></td>
+                    <td> <%= data.section_name %></td>
+                    <td> <%= data.class.class_name %></td>
+                    <td> <a href="/delete_section/<%= data.class_section_id%>">Delete</a></td>
+                </tr>
+
+                <%}%>
+        
+                </tbody>
+                </table>
+
+
+<script>
+    $(document).ready(function () {
+        $('#table_id').DataTable();
+    });
+</script>
+
+</section>
+</body>
+</html>
