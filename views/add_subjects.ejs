@@ -14,24 +14,82 @@
 <body>
     <section>
             <header>
-                <h2 style="margin: 0;">New Subject Category</h2>
+                <h2 style="margin: 0;">Add Subject</h2>
             </header>
            
             <%- include('sidebar') %>
                 <div class="main_content">
                 
+
+
+                    <label for="main_cat">Class</label>
+                    <select name="choose_class" id="choose_class" onClick="findSection(this.value)" >
+                        <% for(var data of classes) {%>
+                            <option value="<%= data.class_id %>">
+                                     <%= data.class_name %> 
+                            </option>
+                            <%}%>
+                    </select>
+               
+                
+                    <label for="choose_section">Section</label>
+                    <select name="choose_section" id="choose_section" >
+                      <option value="">Section</option>
+                    </select>                
                
     <form class="" action="/add-subject" method="POST">
         <div class="form-group">
             <label for="sub_name">Subject Name</label>
             <input type="text" class="form-control" name="sub_name" id="sub_name" required>
           </div>  
+          
     
      
- <button type="submit" class="btn-success">Submit</button>
+
  
     </form>
+    <button onclick="postData()"  class="btn-success">Submit</button>
 </div>
 </section>
+
+<script>
+function findSection(dataval) {
+               
+               $.ajax({
+       
+                   url: '/ajax_find_section',
+                   type: 'POST',
+                   data: { selected_class: dataval },
+                   success: function (result) {
+                       $("#choose_section option").remove();
+                                   $.each(result, function (key, value) {
+                                       $('#choose_section')
+                                           .append($("<option></option>")
+                                               .attr("value", value.class_section_id)
+                                               .text(value.section_name))
+                                   });
+                        }
+                     });
+           }
+
+           function postData(dataval) {
+            var choose_section = $('#choose_section').val();
+            var sub_name = $('#sub_name').val();
+            $.ajax({
+       
+       url: '/ajax_post_subject',
+       type: 'POST',
+       data: {
+        choose_section,sub_name
+        },
+       success: function (result) {
+        $('#sub_name').val('');
+            
+            }
+         });
+           }       
+
+</script>
+
 </body>
 </html>

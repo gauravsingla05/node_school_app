@@ -19,7 +19,11 @@ router.get('/delete-student/:id',add_data.delete_student)
 router.get('/add-teacher',add_data.add_teacher)
 router.post('/add-teacher',add_data.post_add_teacher)
 router.get('/add-subject',add_data.get_add_subject)
-router.post('/add-subject',add_data.post_add_subject)
+router.get('/add-notice-to-students',add_data.add_notice_to_students)
+router.post('/add-notice-to-students',add_data.post_add_notice_to_students)
+router.get('/add-driver',add_data.get_add_driver)
+router.post('/add-driver',add_data.post_add_driver)
+router.post('/ajax_post_subject',add_data.ajax_post_subject)
 
 
 module.exports =  router

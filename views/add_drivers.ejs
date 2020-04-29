@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/styles/style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+   <section>
+            <form action="/logout" method="POST">
+            
+                <button class="btn btn-success"style="float: right" type="submit" >Logout</button>
+            
+            </form>
+
+    <header>   
+          <a href="/"> <img style="float: left" src="/logo/logo.png" alt="logo" height="40px" width="40px" ></a>
+           <h2 style="margin: 0;">Dashboard</h2>
+       </header>
+   
+       <%- include('sidebar') %>
+    <div class="main_content">
+     <div>  
+      
+        <form class="" action="/add-driver" method="POST">
+            <div class="form-group">
+               
+            <div>
+                <label for="driver_name">Name</label>
+                <input type="text" class="form-control" id="driver_name" name="driver_name"
+                placeholder="driver's Full Name " required>
+                
+
+            </div> 
+       
+        <div>
+                <label for="driver_dob">Date of birth</label>
+
+            <input type="date" class="form-control" id="driver_dob" name="driver_dob"
+                placeholder="driver Dob" required>   
+        </div>
+
+        <div>
+                <label for="driver_address">Address</label>
+
+            <input type="text" class="form-control" id="driver_address" name="driver_address"
+                placeholder="driver's Address" required>   
+        </div>
+
+        <div>
+                <label for="driver_phone">Phone</label>
+
+            <input type="number" class="form-control" id="driver_phone" name="driver_phone"
+                placeholder="phone" required>   
+        </div>
+
+        <div>
+            <label for="driver_email">Email</label>
+
+        <input type="text" class="form-control" id="driver_email" name="driver_email"
+            placeholder="Email" required>   
+    </div>
+
+    <div>
+        <label for="driver_pass">New Password</label>
+
+    <input type="text" class="form-control" id="driver_pass" name="driver_pass"
+        placeholder="New Password" required>   
+    </div>
+
+    <div>
+        <label for="driver_bus">Bus no.</label>
+
+    <input type="text" class="form-control" id="driver_bus" name="driver_bus"
+        placeholder="Driver's bus number or id" required>   
+    </div>
+
+        <button type="submit" class="btn-success" >Submit</button>
+
+        
+        </form>
+
+     
+    </div>
+    </div>
+   
+    </section>     
+   
+
+
+
+</body>
+</html>

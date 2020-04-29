@@ -12,7 +12,7 @@ module.exports = sequelize.define('student_attendance',{
     },
     status:{
         type:Sequelize.STRING,
-        defaultValue:'null' 
+        defaultValue:'holiday' 
     },
     date:{
         type:Sequelize.STRING

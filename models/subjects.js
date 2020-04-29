@@ -9,6 +9,9 @@ module.exports = sequelize.define('subjects',{
     subject_name:{
         type:Sequelize.STRING,
         
+    },
+    section_id:{
+        type:Sequelize.INTEGER,
     }
 }
 ) 

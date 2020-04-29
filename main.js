@@ -6,7 +6,9 @@ const bodyparser = require('body-parser')
 const path = require('path')
 const CLASS = require('./models/classes')
 const SECTIONS = require('./models/sections')
+const NOTICE = require('./models/notices')
 const STUDENTS = require('./models/students')
+const SUBJECTS = require('./models/subjects')
 const ATTENDANCE = require('./models/student_attendance')
 const TEACHER = require('./models/teachers')
 const SINGLE_STUDENT_NOTIFICATION = require('./models/notifications_to_single_child')
@@ -65,33 +67,22 @@ SECTIONS.belongsTo(CLASS,{
 
 
 
-    TEACHER.belongsTo(LOGINS,{
-        foreignKey:'teacher_id',
-        onDelete: 'cascade' ,
-        })
-        
-        LOGINS.hasMany(TEACHER,{
-            foreignKey:'teacher_id',
-            onDelete: 'cascade' ,
-        })
 
-    STUDENTS.belongsTo(LOGINS,{
-        foreignKey:'student_id',
-        onDelete: 'cascade' ,
-        })
-            
-    LOGINS.hasMany(STUDENTS,{
-    foreignKey:'student_id',
+ 
+
+    SUBJECTS.belongsTo(SECTIONS,{
+    foreignKey:'section_id',
     onDelete: 'cascade' ,
-            }) 
+        })
+                
+    SECTIONS.hasMany(SUBJECTS,{
+    foreignKey:'section_id',
+    onDelete: 'cascade' ,
+        })
 
-socketio.on("connection", (userSocket) => {
-    console.log('===>userSocket new')
-     userSocket.on("send_notification", (data) => {
-         console.log('===>User Connected')
-        userSocket.broadcast.emit("receive_notifications", data)
-                })
-            })
+
+
+     
 
  const PORT = process.env.PORT || 3000;
 sequelizedb.sync().then(result=>{

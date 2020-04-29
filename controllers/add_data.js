@@ -6,6 +6,8 @@ const STUDENT = require('../models/students')
 const TEACHER = require('../models/teachers')
 const SUBJECTS = require('../models/subjects')
 const LOGINS = require('../models/logins')
+const NOTICE = require('../models/notices')
+const DRIVER = require('../models/drivers')
 
 exports.get_home = async (req, res) => {
     var totalStudent = await STUDENT.count()
@@ -227,14 +229,80 @@ exports.post_add_teacher = (req,res)=>{
 
 }
 
-exports.get_add_subject = (req,res)=>{
-    res.render('add_subjects',{title:"New Subject"})
+exports.get_add_subject = async(req,res)=>{
+    var classes = await CLASS.findAll()
+    res.render('add_subjects',{title:"New Subject",classes:classes})
 }
 
-exports.post_add_subject = (req,res)=>{
+
+exports.add_notice_to_students = async(req,res)=>{
+    var classes = await CLASS.findAll()
+    res.render('add_notice',{title:"New Notice",classes:classes})
+}
+
+exports.post_add_notice_to_students =async (req,res)=>{
+    var {send_notice_class,
+        send_notice_to_all_students,
+        notice_date,
+        Notice_title, 
+        Notice_description,
+        notice_author
+    } = req.body
+
+  var posted=false;
+
+    
+  if(send_notice_class!=null){
+
+    for (var i=0;i<send_notice_class.length;i++)
+    {
+        
+        NOTICE.create({
+            notice_title:Notice_title,
+            notice_description:Notice_description,
+            notice_display_date:notice_date,
+            notice_author:notice_author,
+            notice_to_class:send_notice_class[i]
+         }).then(result=>{
+             res.redirect('/add-notice-to-students')           
+         }).catch(err=>{
+            console.log(err)
+        })  
+      
+   
+    }
+    
+   
+      
+    
+  }
+  else if(send_notice_to_all_students!=null){
+    NOTICE.create({
+        notice_title:Notice_title,
+        notice_description:Notice_description,
+        notice_display_date:notice_date,
+        notice_author:notice_author,
+        notice_to_all:'true'
+     }).then(result=>{
+         res.redirect('/add-notice-to-students')           
+     }).catch(err=>{
+        console.log(err)
+    })  
+
+  }
+  else{
+    res.redirect('/add-notice-to-students')
+  }
+
+}
+
+exports.ajax_post_subject = (req,res)=>{
   var subject_name = req.body.sub_name
+  var choose_section = req.body.choose_section
+  
   SUBJECTS.create({
-    subject_name:subject_name
+    subject_name:subject_name,
+    section_id:choose_section
   }).then(result=>{
     res.redirect('add-subject')
   }).catch(err=>{
@@ -242,4 +310,30 @@ exports.post_add_subject = (req,res)=>{
 })  
 
 
+}
+
+
+exports.get_add_driver =(req,res)=>{
+    res.render('add_drivers',{title:'Add Driver'})
+}
+
+exports.post_add_driver = (req,res)=>{
+
+    var {
+        driver_name,
+        driver_dob,
+        driver_address,
+        driver_phone,
+        driver_email,
+        driver_pass,
+        driver_bus
+    } = req.body
+
+    DRIVER.create({
+        driver_name:driver_name,
+        driver_email:driver_email,
+        driver_pass,driver_email,driver_dob,driver_address,driver_phone,driver_bus
+    }).then(result=>{
+        res.redirect('/add-driver')
+    })
 }

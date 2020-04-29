@@ -8,6 +8,8 @@ const SUBJECTS = require('../../models/subjects')
 const CLASS_WORK = require('../../models/class_work')
 const SINGLE_STUDENT_NOTIFICATION = require('../../models/notifications_to_single_child')
 const LOGINS = require('../../models/logins')
+const DRIVER = require('../../models/drivers')
+var sequelize = require('sequelize')
 
 let date_obj = new Date();
 let todaydate = ("0" + date_obj.getDate()).slice(-2);
@@ -132,21 +134,29 @@ exports.get_teacher_detail_by_id = (req,res)=>{
     })
 }
 
-exports.get_subjets = (req,res)=>{
-    SUBJECTS.findAll().then(result=>{
+exports.get_subjets_by_section = (req,res)=>{
+
+    SUBJECTS.findAll({
+        where:{
+            section_id:req.params.id
+        }
+    }).then(result=>{
         res.status(200).json(result)
     })
 }
 
-exports.post_home_work = (req,res)=>{
-
+exports.post_home_work =async (req,res)=>{
+    
     var section_id = req.body.section_id
     var subject_id = req.body.subject_id
     var class_work_description = req.body.class_work_description
     var class_work_date = req.body.class_work_date
-  
+    var subjectName = await SUBJECTS.findByPk(subject_id)
+    
+    console.log('IN HOMEMWORK')
+
     CLASS_WORK.create({
-        class_work_sub:subject_id,
+        class_work_sub:subjectName.subject_name,
         class_work_discription:class_work_description,
         class_section_id:section_id,
         class_work_date:class_work_date
@@ -157,6 +167,37 @@ exports.post_home_work = (req,res)=>{
     }) 
     
 
+}
+
+exports.get_class_work_by_section = (req,res)=>{
+    var data = new Array();
+    var response;
+    CLASS_WORK.findAll({
+        where:{
+            class_section_id:req.params.id,
+        }
+    }).then(result=>{
+        
+         
+       result.forEach((v,k)=>{
+           var mdate = v.class_work_date
+           var desc = v.class_work_discription
+           response ={
+           data:[
+               {
+                  desc
+                 
+               }
+              ]
+         }
+          data.push(response)
+
+       })
+       res.status(200).json(result)
+      //console.log(data)
+    }).catch(err=>{
+        res.status(200).send('Error')
+    }) 
 }
 
 
@@ -194,7 +235,10 @@ exports.get_student_login_detail = (req,res)=>{
        }
     ).then(result=>{
         if(result!=''){
-            var response = {success:'true',id:result[0].student_id}
+            var response = {
+                success:'true',id:result[0].student_id
+                ,student_section_id:result[0].student_section_id
+            }
         console.log(JSON.stringify(response))
         res.status(200).json(response)
         }
@@ -211,6 +255,39 @@ exports.get_student_login_detail = (req,res)=>{
 }
 
 
+exports.get_driver_logins = (req,res)=>{
+    var {username,pass} = req.body
+   
+    DRIVER.findAll(
+       {
+        where:{
+            driver_email:username,
+            driver_pass:pass  
+        }
+       }
+    ).then(result=>{
+        if(result!=''){
+            var response = {
+                success:'true',id:result[0].driver_id
+            }
+        console.log(JSON.stringify(response))
+        res.status(200).json(response)
+        }
+        else{
+            var wrongresponse = {success:'false',id:0}
+            console.log('no user found')
+            res.status(200).json(wrongresponse)
+        }
+    })
+
+
+
+
+}
+
+
+
+
 exports.get_student_detail_by_id = (req,res)=>{
     STUDENTS.findAll({
         where:{
@@ -218,6 +295,7 @@ exports.get_student_detail_by_id = (req,res)=>{
         }
     }).then(result=>{
         res.status(200).json(result)
+        console.log(JSON.stringify(result))
     }).catch(err=>{
         res.send(err)
     })
@@ -300,7 +378,52 @@ exports.get_Logined_students_list = async(req,res)=>{
         }
     }).then(result=>{
         res.status(200).json(result)
+        
     })
   
     
 } 
+
+exports.get_notice_by_class =(req,res)=>{
+   
+    var data = new Array();
+    
+    console.log('------------------------------------------->')
+
+    NOTICE.findAll({
+        where: {
+            notice_to_class:req.params.id,
+           },
+    }).then(result=>{
+        if(result!=null){
+           result.forEach((k,v)=>{
+               data.push(k)
+           })
+        }
+      
+        NOTICE.findAll({
+            where: {
+                notice_to_all:'true'
+               },
+        }).then(Allresult=>{
+            if(Allresult!=null){
+                Allresult.forEach((k,v)=>{
+                    data.push(k)
+                })
+
+            }
+            console.log(JSON.stringify(data))
+            res.status(200).json(data)
+        })
+    })
+   
+
+}
+
+exports.get_driver_by_id = (req,res)=>{
+
+    DRIVER.findByPk(req.params.id).then(result=>{
+        res.status(200).send(result)
+        console.log(JSON.stringify(result))
+    })
+}

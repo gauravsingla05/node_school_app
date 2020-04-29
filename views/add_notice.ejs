@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>New Category</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/styles/style.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+    <script type="text/javascript" charset="utf8"
+        src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+   
+</head>
+<body>
+    <section>
+            <header>
+                <h2 style="margin: 0;">New Notice</h2>
+            </header>
+           
+            <%- include('sidebar') %>
+                <div class="main_content">
+                
+               
+    <form class="" action="/add-notice-to-students" method="POST">
+        <div class="form-group">
+            <p>Select classes</p>  
+            <% for(var data of classes) {%>
+                
+         <input type="checkbox" id="send_notice_class" name="send_notice_class" value="<%= data.class_id %>">
+         <label for="send_notice_class"> <%= data.class_name %> </label>
+            <%}%>
+         <p>OR</p>
+         <input type="checkbox" id="send_notice_to_all_students" name="send_notice_to_all_students" value='true'>
+         <label for="send_notice_to_all_students">Send to all</label><br> 
+        </div>
+        
+        <div>
+            <label for="birthday">Display on:</label>
+              <input type="date" id="notice_date" name="notice_date">
+        </div>
+
+        <div class="form-group">
+            <label for="Notice_title">Notice Title</label>
+            <input type="text" class="form-control" name="Notice_title" id="Notice_title" required>
+          </div>  
+        <div class="form-group">
+            <label for="Notice_description">Notice</label>
+            <textarea  rows="10" cols="30" class="form-control" name="Notice_description" id="Notice_description" required>
+            </textarea>
+            </div>  
+          <div class="form-group">
+            <label for="notice_author">Notice Author</label>
+            <input type="text" class="form-control" name="notice_author" id="notice_author" required>
+          </div>
+     
+ <button type="submit" class="btn-success">Submit</button>
+ 
+    </form>
+</div>
+
+   
+
+
+<script>
+
+$(document).ready(function(){
+        $('#send_notice_to_all_students').click(function(){
+            if($(this).prop("checked") == true){
+               
+                jQuery("input[name='send_notice_class']").each(function() {
+                 $("input[name='send_notice_class']").prop('checked', false);
+                });
+            }
+            else if($(this).prop("checked") == false){
+                console.log("Checkbox is unchecked.");
+            }
+        });
+
+        jQuery("input[name='send_notice_class']").click(function(){
+            if($(this).prop("checked") == true){
+                $('#send_notice_to_all_students').prop('checked', false);
+               
+            }
+            else if($(this).prop("checked") == false){
+                console.log("Checkbox is unchecked.");
+            }
+        });
+
+    });
+
+</script>
+
+</section>
+</body>
+</html>

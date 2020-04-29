@@ -19,5 +19,13 @@ module.exports = sequelize.define('notices',{
     notice_author:{
       type:Sequelize.STRING  
     },
+    notice_to_class:{
+      type: Sequelize.STRING,
+      defaultValue:0 
+    },
+    notice_to_all:{
+      type: Sequelize.STRING,
+      defaultValue:'false' 
+    }
 }
 ) 
