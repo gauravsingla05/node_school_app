@@ -30,7 +30,7 @@ module.exports = sequelize.define('drivers',{
         type:Sequelize.STRING,
     },
     driver_dp:{ 
-        type:Sequelize.STRING,
+        type:Sequelize.TEXT,
         defaultValue:'https://www.autobytesolutions.com/wp-content/uploads/2020/03/Rick-130x130.png' 
     }
 }

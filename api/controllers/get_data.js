@@ -8,8 +8,13 @@ const SUBJECTS = require('../../models/subjects')
 const CLASS_WORK = require('../../models/class_work')
 const SINGLE_STUDENT_NOTIFICATION = require('../../models/notifications_to_single_child')
 const LOGINS = require('../../models/logins')
+const BUSES = require('../../models/buses')
+const bcrypt = require('bcrypt');
 const DRIVER = require('../../models/drivers')
+const jwt = require('jsonwebtoken')
 var sequelize = require('sequelize')
+const config  = require('../../config/config')
+const secret = require('../../config/secret')
 
 let date_obj = new Date();
 let todaydate = ("0" + date_obj.getDate()).slice(-2);
@@ -19,29 +24,60 @@ let todaymonth = ("0" + (date_obj.getMonth() + 1)).slice(-2);
 let todayyear = date_obj.getFullYear();
 
 exports.post_attance_of_students = (req,res)=>{
-var std_ids = req.body.student_ids_arry
-var status = req.body.status
-var currentDate = `${todayyear}, ${date_obj.getMonth()}, ${todaydate}`
+
+var currentDate = `${todayyear}, ${todaymonth}, ${todaydate}`
 
 var jsondata = req.body
-console.log(jsondata[0].status) 
-
-
-for(var i=0;i<jsondata.length;i++){
-
-
-
-ATTENDANCE.create({
-    student_id:jsondata[i].id,
-    status:jsondata[i].status,
-    date:currentDate
-}).then(result=>{   
-   console.log('marked')
-})
  
+
+jsondata.forEach((v,k)=>{
+   console.log(v.id) 
+
+   ATTENDANCE.findAll({
+       where:{
+        student_id:v.id, 
+        date:currentDate
+       }
+   }).then(result=>{
+       if(result!=''){
+           
+           ATTENDANCE.update(
+                    {
+                        status:v.status
+                    },{
+                        where:{
+                            student_id:v.id,
+                            date:currentDate}
+                    }
+                    ).then(result=>{
+                        console.log('data updated')
+                    })
+       }
+       else{
+           console.log('No found')
+           ATTENDANCE.create({
+                        student_id:v.id,
+                        status:v.status,
+                        date:currentDate
+                    }).then(result=>{   
+                       
+                       console.log('marked')
+                    })
+       }
+   })
+
+})
 
 }
 
+exports.get_attendence_by_section = (req,res)=>{
+    ATTENDANCE.findAll({
+        include:[
+            model=STUDENTS
+        ]
+    }).then(result=>{
+        res.send(result)
+    })
 }
 
 exports.get_attendence_by_stdnt_id  = (req,res)=>{
@@ -57,7 +93,7 @@ exports.get_attendence_by_stdnt_id  = (req,res)=>{
 
 exports.post_notice = (req,res)=>{
     var {notice_title,notice_description,notice_display_date,notice_author} = req.body
-  console.log(notice_title,notice_description,notice_display_date,notice_author)
+  
     NOTICE.create({
         notice_title,
         notice_description,
@@ -70,31 +106,68 @@ exports.post_notice = (req,res)=>{
 
 exports.post_teacher_logins = (req,res)=>{
     var {username,pass} = req.body
-   
+    
     TEACHERS.findAll(
-       {
-        where:{
-            teacher_email:username,
-            teacher_pass:pass 
+        {
+         where:{
+             teacher_email:username, 
+         }
         }
-       }
-    ).then(result=>{
-        if(result!=''){
-            var response = {success:'true',id:result[0].teacher_id}
-        console.log(JSON.stringify(response))
-        res.status(200).json(response)
-        }
-        else{
-            var wrongresponse = {success:'false',id:0}
-            console.log('no user found')
-            res.status(200).json(wrongresponse)
-        }
-    })
+     ).then(result=>{
+         if(result!=''){
+ 
+            var hashpass = result[0].teacher_pass
+
+            bcrypt.compare(pass, hashpass, function(err, isMatch) {
+                if(isMatch) {
+                    try{ jwt.sign({payload:username},secret.secret,
+                        {
+                          expiresIn:"2 days"
+                        },
+                        (errr,token)=>{
+                          
+                            var response = {
+                                success:'true',
+                                id:result[0].teacher_id,
+                                token:token
+                            }
+                        
+                        res.status(200).json(response)
+                        }
+                          
+                          )
+                        }catch (err) {
+                            return res.status(422).send({
+                                error:'Invalid password or email'
+                            });
+                        }
+                  
+        
+                } else {
+                    var wrongresponse = {success:'false',id:0}
+                    console.log('no user found')
+                    res.status(200).json(wrongresponse)
+                } 
+              });
+            
+             
+     
+         }
+         else{
+             var wrongresponse = {success:'false',id:0}
+             console.log('no user found')
+             res.status(200).json(wrongresponse)
+         }
+     })
+
+   
+
+  
 }
 
 exports.get_all_classes = (req,res)=>{
     CLASSES.findAll().then(result=>{
-        console.log(result)
+     
         res.status(200).json(result)
     })
 }
@@ -123,12 +196,10 @@ exports.get_students_by_section = (req,res)=>{
 }
 
 exports.get_teacher_detail_by_id = (req,res)=>{
-    TEACHERS.findAll({
-        where:{
-            teacher_id:req.params.id
-        }
+    TEACHERS.findAll(
+        {where:{teacher_id:req.params.id},attributes: { exclude: ["teacher_pass"] }
     }).then(result=>{
-        console.log(JSON.stringify(result))
+       
         res.status(200).json(result)
         
     })
@@ -209,6 +280,8 @@ var {notification,
 }  = req.body
 
 
+
+
 SINGLE_STUDENT_NOTIFICATION.create({
     notification,
     student_id,
@@ -235,12 +308,33 @@ exports.get_student_login_detail = (req,res)=>{
        }
     ).then(result=>{
         if(result!=''){
-            var response = {
-                success:'true',id:result[0].student_id
-                ,student_section_id:result[0].student_section_id
-            }
-        console.log(JSON.stringify(response))
-        res.status(200).json(response)
+        
+            try{ jwt.sign({payload:username},secret.secret,
+                {
+                  expiresIn:"2 days"
+                },
+                (errr,token)=>{
+                    console.log(token);
+
+                
+                  var response = {
+                    success:'true',id:result[0].student_id,
+                    student_section_id:result[0].student_section_id,
+                    token:token
+                }
+              
+
+            
+                res.status(200).json(response)
+                }
+                  
+                  )
+                }catch (err) {
+                    return res.status(422).send({
+                        error:'Invalid password or email'
+                    });
+                }
+        
         }
         else{
             var wrongresponse = {success:'false',id:0}
@@ -262,16 +356,52 @@ exports.get_driver_logins = (req,res)=>{
        {
         where:{
             driver_email:username,
-            driver_pass:pass  
+            
         }
        }
     ).then(result=>{
         if(result!=''){
-            var response = {
-                success:'true',id:result[0].driver_id
-            }
-        console.log(JSON.stringify(response))
-        res.status(200).json(response)
+   
+            var hashpass = result[0].driver_pass
+
+            bcrypt.compare(pass, hashpass, function(err, isMatch) {
+                if(isMatch) {
+                    try{ jwt.sign({payload:username},secret.secret,
+                        {
+                          expiresIn:"2 days"
+                        },
+                        (errr,token)=>{
+                          
+                            var response = {
+                                success:'true',
+                                id:result[0].driver_id,
+                                bus_no:result[0].driver_bus,
+                                token:token
+                            }
+                       
+                        res.status(200).json(response)
+                        }
+                          
+                          )
+                        }catch (err) {
+                            return res.status(422).send({
+                                error:'Invalid password or email'
+                            });
+                        }
+        
+                } else {
+                    var response = {
+                        success:'false',
+                        id:0,
+                        bus_no:"0",
+                        token:"0"
+                    }
+               
+                res.status(200).json(response)
+                } 
+              });
+  
+           
         }
         else{
             var wrongresponse = {success:'false',id:0}
@@ -295,7 +425,7 @@ exports.get_student_detail_by_id = (req,res)=>{
         }
     }).then(result=>{
         res.status(200).json(result)
-        console.log(JSON.stringify(result))
+  
     }).catch(err=>{
         res.send(err)
     })
@@ -315,7 +445,7 @@ exports.get_logins = (req,res)=>{
             status:result[0].status
            
         }
-        console.log(JSON.stringify(response))
+       
         res.status(200).json(response)
         }
         else{
@@ -353,7 +483,7 @@ exports.get_student_attendence = async(req,res)=>{
    var LeavedateArry =  leave.map(ldata=>ldata.date)
    
    
-   console.log({'present':PresentdateArry})
+  
    
    res.status(200).json({'present':PresentdateArry,'absent':AbsentdateArry,'leave':LeavedateArry})
     
@@ -412,7 +542,7 @@ exports.get_notice_by_class =(req,res)=>{
                 })
 
             }
-            console.log(JSON.stringify(data))
+            
             res.status(200).json(data)
         })
     })
@@ -422,8 +552,36 @@ exports.get_notice_by_class =(req,res)=>{
 
 exports.get_driver_by_id = (req,res)=>{
 
-    DRIVER.findByPk(req.params.id).then(result=>{
-        res.status(200).send(result)
-        console.log(JSON.stringify(result))
+    DRIVER.findAll({
+        where:{
+            driver_id : req.params.id
+        }
+    }).then(result=>{
+        res.status(200).json(result)
+    
     })
+}
+
+exports.get_all_buses = (req,res)=>{
+   BUSES.findAll().then(result=>{
+       res.status(200).json(result)
+   })
+}
+
+exports.post_student_dp = (req,res)=>{
+    var dpFile = req.files
+   
+    STUDENTS.update({
+        student_dp:dpFile[0].path
+    },
+        {where:{student_id:req.params.id}
+    }).then(resut=>{
+        
+        res.status(200).send('=================> updated')
+    }).catch(err=>{
+        res.send('Error in uploading')
+    })
+    
+
+ 
 }

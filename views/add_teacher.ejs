@@ -27,7 +27,7 @@
     <div class="main_content">
      <div>  
       
-        <form class="" action="/add-teacher" method="POST">
+        <form class="" action="/add-teacher" method="POST" enctype="multipart/form-data">
             <div class="form-group">
                
             <div>
@@ -42,7 +42,7 @@
                 <label for="teacher_dob">Date of birth</label>
 
             <input type="date" class="form-control" id="teacher_dob" name="teacher_dob"
-                placeholder="Teacher Dob" required>   
+                placeholder="Teacher Dob" required   
         </div>
 
         <div>
@@ -71,7 +71,14 @@
 
     <input type="text" class="form-control" id="teacher_pass" name="teacher_pass"
         placeholder="New Password" required>   
-</div>
+     </div>
+
+     <div class="file col">
+        <input type="file" name="myimage" accept="image/*" oninvalid="alert('You must fill out the form!');"
+            required>
+      </div>
+
+
         <button type="submit" class="btn-success" >Submit</button>
 
         

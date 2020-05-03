@@ -8,6 +8,10 @@ const SUBJECTS = require('../models/subjects')
 const LOGINS = require('../models/logins')
 const NOTICE = require('../models/notices')
 const DRIVER = require('../models/drivers')
+const BUSES = require('../models/buses')
+const ADMIN = require('../models/admin')
+const bcrypt = require('bcrypt')
+
 
 exports.get_home = async (req, res) => {
     var totalStudent = await STUDENT.count()
@@ -191,10 +195,16 @@ exports.post_edit_student = (req,res)=>{
 exports.delete_student = (req,res)=>{
     var id = req.params.id
     
-    STUDENT.findByPk(id).then(result=>{
-        
-        result.destroy()
-    }).then(res.redirect('student-list'))
+    STUDENT.findAll({
+        where:{
+            student_id:id
+        }
+    }).then(result=>{
+        result.destroy().then(ok=>{
+            res.redirect('student-list')  
+
+        })
+    })
 }
 
 exports.add_teacher = (req,res)=>{
@@ -207,25 +217,33 @@ exports.post_add_teacher = (req,res)=>{
         teacher_address,
         teacher_phone,
         teacher_email,
-        teacher_pass
+        teacher_pass,
     } = req.body
+    var teacher_img_path = req.files
+    
 
-    TEACHER.create({
-        teacher_name,teacher_email,teacher_pass,teacher_dob,teacher_address,teacher_phone
-    }).then(result=>{
-
-        LOGINS.create({
-            username:teacher_name,
-            pass:teacher_pass,
-            status:'teacher',
-            teacher_id:result.teacher_id
-             }).then(result=>{
-                res.redirect('add-teacher')
-             })
+    bcrypt.hash(teacher_pass, 10, function(err, hash) {
         
-    }).catch(err=>{
-        console.log(err)
-    })  
+        TEACHER.create({
+            teacher_name,
+            teacher_email,
+            teacher_phone,
+            teacher_dob,
+            teacher_address,
+            teacher_pass:hash,
+            teacher_dp:teacher_img_path[0].path
+           
+        }).then(result=>{
+    
+            res.redirect('add-teacher')
+            
+        }).catch(err=>{
+            console.log(err)
+        }) 
+
+
+      });
+     
 
 }
 
@@ -314,11 +332,15 @@ exports.ajax_post_subject = (req,res)=>{
 
 
 exports.get_add_driver =(req,res)=>{
-    res.render('add_drivers',{title:'Add Driver'})
+    BUSES.findAll().then(result=>{
+        res.render('add_drivers',{title:'Add Driver',buses:result,error:''})
+    })
+   
 }
 
-exports.post_add_driver = (req,res)=>{
-
+exports.post_add_driver = async(req,res)=>{
+    var result = await BUSES.findAll()
+    console.log(req.body.driver_bus)
     var {
         driver_name,
         driver_dob,
@@ -329,11 +351,98 @@ exports.post_add_driver = (req,res)=>{
         driver_bus
     } = req.body
 
-    DRIVER.create({
-        driver_name:driver_name,
-        driver_email:driver_email,
-        driver_pass,driver_email,driver_dob,driver_address,driver_phone,driver_bus
-    }).then(result=>{
-        res.redirect('/add-driver')
+    DRIVER.findAll({
+        where:{
+            driver_email 
+        }
+    }).then(emailFound=>{
+         if(emailFound!=''){
+            console.log('already registered')
+            res.render('add_drivers',{title:'Add Driver',buses:result,error:'Email Already Registered'})
+         }
+         else{
+
+            bcrypt.hash(driver_pass, 10, function(err, hash) {
+      
+                DRIVER.create({
+                    driver_name:driver_name,
+                    driver_email:driver_email,
+                    driver_pass:hash,
+                    driver_email,
+                    driver_dob,
+                    driver_address,
+                    driver_phone,
+                    driver_bus
+                }).then(result=>{
+                    res.redirect('/add-driver')
+                })
+        
+              });
+         }
+    })
+
+
+   
+}
+
+exports.get_add_bus = (req,res)=>{
+
+   res.render('add_buses',{title:'Bus'})
+
+}
+
+exports.post_add_bus = (req,res) => {
+  BUSES.create({
+    bus_no:req.body.bus_no
+  }).then(result=>{
+      res.redirect('add-bus')
+  }).catch(err=>{
+      res.json(err)
+  })
+}
+
+exports.login = (req, res) => {
+
+    res.render('login', {
+        title: 'Login',
+    })
+}
+exports.post_login = (req, res) => {
+    var username = req.body.login
+    var pass = req.body.password
+    ADMIN.findAll({
+        where: {
+            email: username,
+        }
+    }).then(result => {
+        console.log('**********', result)
+        if (result != '') {
+            if (result[0].password !== pass && result[0].email !== username) {
+                res.redirect('/login')
+
+            }
+            else if (result[0].email == username && result[0].password == pass) {
+                req.session.isAuthenticated = true
+                req.session.result = result
+                req.session.save((err) => {
+                    console.log(err)
+                    res.redirect('/')
+
+                })
+
+            }
+        }
+        else {
+            res.redirect('/login')
+
+        }
+
+
+    })
+}
+exports.post_logout = (req, res) => {
+    req.session.destroy((err) => {
+        console.log(err)
+        res.redirect('/login')
     })
 }

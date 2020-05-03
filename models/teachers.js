@@ -25,6 +25,9 @@ module.exports = sequelize.define('teachers',{
     },
     teacher_phone:{
         type:Sequelize.STRING,
+    },
+    teacher_dp:{
+        type:Sequelize.TEXT,
     }
 }
 ) 

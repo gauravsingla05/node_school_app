@@ -27,6 +27,11 @@
     <div class="main_content">
      <div>  
       
+     <div style="background-color: red;color: white;" ><% if(error!=''){%>
+      <%= error%>
+    <% }%>
+    </div>
+
         <form class="" action="/add-driver" method="POST">
             <div class="form-group">
                
@@ -75,9 +80,17 @@
 
     <div>
         <label for="driver_bus">Bus no.</label>
-
-    <input type="text" class="form-control" id="driver_bus" name="driver_bus"
-        placeholder="Driver's bus number or id" required>   
+ 
+   
+        <select name="driver_bus" id="driver_bus">
+            <% for(var data of buses) {%>
+                <option value="<%= data.bus_no %>">
+                         <%= data.bus_no %> 
+                </option>
+                <%}%>
+        </select>
+   
+   
     </div>
 
         <button type="submit" class="btn-success" >Submit</button>
