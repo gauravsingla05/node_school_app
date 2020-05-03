@@ -10,7 +10,7 @@ const NOTICE = require('../models/notices')
 const DRIVER = require('../models/drivers')
 const BUSES = require('../models/buses')
 const ADMIN = require('../models/admin')
-const bcrypt = require('bcrypt-nodejs')
+const bcrypt = require('bcrypt')
 
 
 exports.get_home = async (req, res) => {
