@@ -20,7 +20,7 @@ module.exports = sequelize.define('single_student_notification',{
         allowNull: false,
     },
     single_student_notification_date:{
-        type:Sequelize.STRING,
+        type:Sequelize.DATE,
     }
     
 }

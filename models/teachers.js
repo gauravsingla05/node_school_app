@@ -28,6 +28,9 @@ module.exports = sequelize.define('teachers',{
     },
     teacher_dp:{
         type:Sequelize.TEXT,
-    }
+    },
+    teacher_fcm_token:{
+        type:Sequelize.TEXT
+    },
 }
 ) 

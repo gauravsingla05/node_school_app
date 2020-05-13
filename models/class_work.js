@@ -1,5 +1,10 @@
 var Sequelize = require('sequelize')
 var sequelize = require('../utils/database')
+var work_detail = require('sequelize-json'),
+        db,
+        class_work;
+
+
 module.exports = sequelize.define('class_work',{
     class_work_id:{
         type:Sequelize.INTEGER,
@@ -7,20 +12,13 @@ module.exports = sequelize.define('class_work',{
         primaryKey:true,
         unique: true
     },
-    class_work_sub:{
-        type:Sequelize.STRING,
-        allowNull: false,
-    },
-    class_work_discription:{
-        type:Sequelize.STRING,
-        allowNull: false,
-    },
-    class_section_id:{
+    class_section_id:{ 
         type:Sequelize.INTEGER,
       },
     class_work_date:{
         type:Sequelize.STRING,
-    }  
+    },
+    work_detail: work_detail(sequelize, 'class_work', 'work_detail')
 
 }
 ) 

@@ -22,7 +22,14 @@ var http = require('http').createServer(app);
 const socketio = require('socket.io')(http)
 const SessionStore = require('express-session-sequelize')(session.Store);
 var config = require('./config/config')
+var admin = require("firebase-admin");
+var serviceAccount = require('./school-app-admin.json');
 
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://school-app-275310.firebaseio.com"
+  });
+  
 const myDatabase = new Sequelize(config.DB, config.USER, config.PASSWORD, {
     host: config.HOST,
     dialect: 'mysql',
@@ -126,7 +133,7 @@ SECTIONS.belongsTo(CLASS,{
 })
   
 
- const PORT = process.env.PORT || 443;
+ const PORT = process.env.PORT || 3000;
 sequelizedb.sync().then(result=>{
     http.listen(PORT,()=>{
     	console.log('server is running on '+PORT)

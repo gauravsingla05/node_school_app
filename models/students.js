@@ -49,6 +49,10 @@ module.exports = sequelize.define('students',{
     },
     student_username:{
         type:Sequelize.STRING
-    }
+    },
+    student_fcm_token:{
+        type:Sequelize.TEXT
+    },
+    
 }
 ) 

@@ -15,7 +15,8 @@ const jwt = require('jsonwebtoken')
 var sequelize = require('sequelize')
 const config  = require('../../config/config')
 const secret = require('../../config/secret')
-
+var config_fcm = require('../../config/fcm-config')
+var admin = require("firebase-admin");
 let date_obj = new Date();
 let todaydate = ("0" + date_obj.getDate()).slice(-2);
 // current month
@@ -224,18 +225,20 @@ exports.post_home_work =async (req,res)=>{
     var class_work_date = req.body.class_work_date
     var subjectName = await SUBJECTS.findByPk(subject_id)
     
-    console.log('IN HOMEMWORK')
 
     CLASS_WORK.create({
-        class_work_sub:subjectName.subject_name,
-        class_work_discription:class_work_description,
         class_section_id:section_id,
-        class_work_date:class_work_date
+        class_work_date:class_work_date,
+        work_detail: [{
+            [subjectName.subject_name]: class_work_description
+          }]
     }).then(result=>{
-        res.status(200).send('Posted')
+        
+        console.log('Posted')
     }).catch(err=>{
-        res.status(200).send('Error')
+        console.log(err)
     }) 
+  
     
 
 }
@@ -243,7 +246,9 @@ exports.post_home_work =async (req,res)=>{
 exports.get_class_work_by_section = (req,res)=>{
     var data = new Array();
     var response;
+
     CLASS_WORK.findAll({
+        group: ['class_work_date'],
         where:{
             class_section_id:req.params.id,
         }
@@ -253,20 +258,21 @@ exports.get_class_work_by_section = (req,res)=>{
        result.forEach((v,k)=>{
            var mdate = v.class_work_date
            var desc = v.class_work_discription
-           response ={
-           data:[
-               {
-                  desc
-                 
+           var subname = v.class_work_sub
+           response ={  
+               [mdate]:{
+                   desc,
+                   subname
                }
-              ]
-         }
+            }
           data.push(response)
 
-       })
+       }
+       )
        res.status(200).json(result)
       //console.log(data)
     }).catch(err=>{
+        console.log(err)
         res.status(200).send('Error')
     }) 
 }
@@ -276,7 +282,6 @@ exports.post_single_student_notification = (req,res)=>{
 var {notification,
     student_id,
     teacher_id,
-    single_student_notification_date
 }  = req.body
 
 
@@ -286,9 +291,37 @@ SINGLE_STUDENT_NOTIFICATION.create({
     notification,
     student_id,
     teacher_id,
-    single_student_notification_date
 }).then(result=>{
-    res.send('posted')
+    
+    STUDENTS.findAll({
+        where:{
+            student_id:student_id
+        }
+    }).then(studentFound=>{
+        if(studentFound!=''){
+
+           console.log(studentFound[0].student_fcm_token)
+           
+           var options =  config_fcm.options
+           var message_notification = {
+            notification: {
+               title: 'Teacher sent you a message',
+               body: notification
+                   }
+            };
+                
+            admin.messaging().sendToDevice(studentFound[0].student_fcm_token,
+                message_notification, options)
+           .then( response => {
+            res.send('Message has been sent')
+              console.log('sent')
+           })
+           .catch( error => {
+               console.log(error);
+           });
+        
+        }
+    }) 
 }).catch(err=>{
     res.status(200).send('Error')
 }) 
@@ -297,7 +330,7 @@ SINGLE_STUDENT_NOTIFICATION.create({
 
 exports.get_student_login_detail = (req,res)=>{
 
-    var {username,pass} = req.body
+    var {username,pass,student_fcm_token} = req.body
    
     STUDENTS.findAll(
        {
@@ -308,12 +341,9 @@ exports.get_student_login_detail = (req,res)=>{
        }
     ).then(result=>{
         if(result!=''){
-        
-            try{ jwt.sign({payload:username},secret.secret,
-                {
-                  expiresIn:"2 days"
-                },
-                (errr,token)=>{
+            
+            try{ jwt.sign({payload:username},secret.secret,{
+                  expiresIn:"2 days"},(errr,token)=>{
                     console.log(token);
 
                 
@@ -322,10 +352,22 @@ exports.get_student_login_detail = (req,res)=>{
                     student_section_id:result[0].student_section_id,
                     token:token
                 }
-              
-
+                
+                STUDENTS.update(
+                    {
+                    student_fcm_token:student_fcm_token
+                   },
+                    {
+                        where:{
+                            student_username:username,
+                            student_dob:pass
+                         }
+                }).then(tokenUpdated=>{
+                    console.log('updated')
+                    res.status(200).json(response)
+                })
             
-                res.status(200).json(response)
+               
                 }
                   
                   )
@@ -514,13 +556,13 @@ exports.get_Logined_students_list = async(req,res)=>{
     
 } 
 
-exports.get_notice_by_class =(req,res)=>{
+exports.get_notice_by_class =async(req,res)=>{
    
     var data = new Array();
+      var std_id = req.params.std_id
+  
     
-    console.log('------------------------------------------->')
-
-    NOTICE.findAll({
+      NOTICE.findAll({ 
         where: {
             notice_to_class:req.params.id,
            },
@@ -529,7 +571,9 @@ exports.get_notice_by_class =(req,res)=>{
            result.forEach((k,v)=>{
                data.push(k)
            })
+          
         }
+        
       
         NOTICE.findAll({
             where: {
@@ -542,9 +586,26 @@ exports.get_notice_by_class =(req,res)=>{
                 })
 
             }
+          
             
+           
+        })
+        SINGLE_STUDENT_NOTIFICATION.findAll(
+            {where:{
+                student_id:std_id}
+        }).then(single_notifications=>{
+            if(single_notifications!=''){
+               console.log(single_notifications)
+                single_notifications.forEach((singleData,v)=>{
+                    data.push(singleData)
+                })
+            }
             res.status(200).json(data)
         })
+    
+    
+    
+    
     })
    
 

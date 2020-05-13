@@ -32,6 +32,9 @@ module.exports = sequelize.define('drivers',{
     driver_dp:{ 
         type:Sequelize.TEXT,
         defaultValue:'https://www.autobytesolutions.com/wp-content/uploads/2020/03/Rick-130x130.png' 
-    }
+    },
+    driver_fcm_token:{
+        type:Sequelize.TEXT
+    },
 }
 ) 

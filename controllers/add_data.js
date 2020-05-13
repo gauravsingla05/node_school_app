@@ -11,6 +11,9 @@ const DRIVER = require('../models/drivers')
 const BUSES = require('../models/buses')
 const ADMIN = require('../models/admin')
 const bcrypt = require('bcrypt')
+var admin = require("firebase-admin");
+var serviceAccount = require('../school-app-admin.json');
+var config_fcm = require('../config/fcm-config')
 
 
 exports.get_home = async (req, res) => {
@@ -259,6 +262,13 @@ exports.add_notice_to_students = async(req,res)=>{
 }
 
 exports.post_add_notice_to_students =async (req,res)=>{
+  
+   
+   
+      const options =  config_fcm.options
+
+   
+
     var {send_notice_class,
         send_notice_to_all_students,
         notice_date,
@@ -266,7 +276,13 @@ exports.post_add_notice_to_students =async (req,res)=>{
         Notice_description,
         notice_author
     } = req.body
-
+    
+    const message_notification = {
+        notification: {
+           title: Notice_title,
+           body: Notice_description
+               },
+        };
   var posted=false;
 
     
@@ -282,14 +298,44 @@ exports.post_add_notice_to_students =async (req,res)=>{
             notice_author:notice_author,
             notice_to_class:send_notice_class[i]
          }).then(result=>{
-             res.redirect('/add-notice-to-students')           
+                   
          }).catch(err=>{
             console.log(err)
         })  
-      
-   
-    }
+       
     
+    }
+
+     for(var j=0;j<send_notice_class.length;j++){
+        STUDENT.findAll({
+            where:{
+              student_class:send_notice_class[j]
+            }
+        }).then(noticeToStudents=>{
+             
+            
+            
+            for(var g=0;g<noticeToStudents.length;g++){
+                console.log(noticeToStudents[g].student_fcm_token)
+              admin.messaging().sendToDevice(noticeToStudents[g].student_fcm_token,
+                   message_notification, options)
+              .then( response => {
+             
+                 res.redirect('/add-notice-to-students')  
+              })
+              .catch( error => {
+                  console.log(error);
+              });
+           
+            
+           
+           
+           
+            }
+           
+        }) 
+     }
+
    
       
     
