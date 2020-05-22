@@ -148,7 +148,7 @@ SECTIONS.belongsTo(CLASS,{
   
 
  const PORT = process.env.PORT || 443;
-sequelizedb.sync({force:true}).then(result=>{
+sequelizedb.sync().then(result=>{
     http.listen(PORT,()=>{
     	console.log('server is running on '+PORT)
     }) 
