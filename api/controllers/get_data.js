@@ -34,10 +34,10 @@ function stringToDate(date){
 
 exports.post_attance_of_students = (req,res)=>{
 
-var currentDate = `${todayyear}, ${todaymonth}, ${todaydate}`
+//var currentDate = `${todayyear}, ${todaymonth}, ${todaydate}`
 
 var jsondata = req.body
- 
+ console.log(jsondata)
 
 jsondata.forEach((v,k)=>{
    console.log(v.id) 
@@ -45,7 +45,7 @@ jsondata.forEach((v,k)=>{
    ATTENDANCE.findAll({
        where:{
         student_id:v.id, 
-        date:currentDate
+        date:v.date
        }
    }).then(result=>{
        if(result!=''){
@@ -56,7 +56,7 @@ jsondata.forEach((v,k)=>{
                     },{
                         where:{
                             student_id:v.id,
-                            date:currentDate}
+                            date:v.date}
                     }
                     ).then(result=>{
                         console.log('data updated')
@@ -68,7 +68,7 @@ jsondata.forEach((v,k)=>{
            ATTENDANCE.create({
                         student_id:v.id,
                         status:v.status,
-                        date:currentDate
+                        date:v.date
                     }).then(result=>{   
                         res.status(200).send('marked')
                        console.log('marked')
