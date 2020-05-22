@@ -26,7 +26,9 @@
        <%- include('sidebar') %>
     <div class="main_content">
      <div>  
-      
+      <div>
+          <h3 style="background-color: red;color: white;"><%= error%></h3>
+      </div>
         <form class="" action="/edit-student" method="POST">
             <div class="form-group">
                 <label for="main_cat">Class</label>
@@ -145,6 +147,7 @@ function findSection(dataval) {
                         }
                      });
            }
+
            
 
 </script>

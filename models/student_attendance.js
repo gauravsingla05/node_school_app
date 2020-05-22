@@ -4,10 +4,12 @@ module.exports = sequelize.define('student_attendance',{
     att_id:{
         type:Sequelize.INTEGER,
         autoIncrement:true,
-        primaryKey:true
+        primaryKey:true,
+        unique: true,
     },
     student_id:{
         type:Sequelize.INTEGER,
+        
         
     },
     status:{

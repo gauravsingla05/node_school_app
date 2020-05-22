@@ -14,13 +14,15 @@ module.exports = sequelize.define('single_student_notification',{
     student_id:{
         type:Sequelize.INTEGER,
         allowNull: false,
+     
     },
     teacher_id:{
         type:Sequelize.INTEGER,
         allowNull: false,
+      
     },
     single_student_notification_date:{
-        type:Sequelize.DATE,
+        type:Sequelize.STRING,
     }
     
 }

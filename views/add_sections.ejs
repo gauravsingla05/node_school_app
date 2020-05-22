@@ -46,32 +46,36 @@
  <button type="submit" class="btn-success">Submit</button>
  
     </form>
+
+ <div class="table-body">
+    <table id="table_id" class="display">
+        <thead style="background-color:rgb(255, 255, 255)">
+            <tr>
+                <th>ID</th>
+                <th>Section</th>
+                <th>Class</th>
+                 <th>Delete</th>       
+            </tr>
+    
+        </thead>
+    
+       
+         <tbody>
+                <% for(var data of sections) { %>
+                    <tr>
+                        <td><%= data.class_section_id %></td>
+                        <td> <%= data.section_name %></td>
+                        <td> <%= data.class.class_name %></td>
+                        <td> <a href="/delete_section/<%= data.class_section_id%>">Delete</a></td>
+                    </tr>
+    
+                    <%}%>
+            
+                    </tbody>
+                    </table>
+ </div>
 </div>
-<table id="table_id" class="display">
-    <thead style="background-color:rgb(255, 255, 255)">
-        <tr>
-            <th>ID</th>
-            <th>Section</th>
-            <th>Class</th>
-             <th>Delete</th>       
-        </tr>
 
-    </thead>
-
-   
-     <tbody>
-            <% for(var data of sections) { %>
-                <tr>
-                    <td><%= data.class_section_id %></td>
-                    <td> <%= data.section_name %></td>
-                    <td> <%= data.class.class_name %></td>
-                    <td> <a href="/delete_section/<%= data.class_section_id%>">Delete</a></td>
-                </tr>
-
-                <%}%>
-        
-                </tbody>
-                </table>
 
 
 <script>

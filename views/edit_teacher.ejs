@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/styles/style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+   <section>
+            <form action="/logout" method="POST">
+            
+                <button class="btn btn-success"style="float: right" type="submit" >Logout</button>
+            
+            </form>
+
+    <header>   
+          <a href="/"> <img style="float: left" src="/logo/logo.png" alt="logo" height="40px" width="40px" ></a>
+           <h2 style="margin: 0;">Dashboard</h2>
+       </header>
+   
+      <div>
+        <%- include('sidebar') %>
+      </div>
+     
+    <div class="main_content">
+     <div>  
+      
+        <form class="" action="/edit-teacher" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+               
+            <div>
+                <label for="teacher_name">Name</label>
+                <input type="text" class="form-control" id="teacher_name" name="teacher_name"
+                placeholder="Teacher's Full Name "  value="<%= result.teacher_name %>" required>
+                
+
+            </div> 
+       
+        <div>
+                <label for="teacher_dob">Date of birth</label>
+
+            <input type="date" class="form-control" id="teacher_dob" name="teacher_dob"
+                placeholder="Teacher Dob"  value="<%= result.teacher_dob%>"  required >  
+        </div>
+
+        <div>
+                <label for="teacher_address">Address</label>
+
+            <input type="text" class="form-control" id="teacher_address" name="teacher_address"
+                placeholder="Teacher's Address"  value="<%= result.teacher_address%>" required>   
+        </div>
+
+        <div>
+                <label for="teacher_phone">Phone</label>
+
+            <input type="number" class="form-control" id="teacher_phone" name="teacher_phone"
+                placeholder="phone" value="<%= result.teacher_phone%>" required>   
+        </div>
+
+        <div>
+            <label for="teacher_email">Email</label>
+
+        <input type="text" class="form-control" id="teacher_email" name="teacher_email"
+            placeholder="Email" value="<%= result.teacher_email %>" required>   
+    </div>
+
+ 
+     
+     <img src="<%= result.teacher_dp %>"  alt="Not loaded" height="50" width="50">
+
+     <div class="file col">
+        <input type="file" name="myimage" accept="image/*">
+      </div>
+
+      <input type="hidden" name="id" value="<%= result.teacher_id%>">
+
+        <button type="submit" class="btn-success" >Submit</button>
+
+        
+        </form>
+
+     </div>
+    </div>
+   
+<div>
+
+    <center><h2>....OR....</h2></center>
+
+    <form action="/change-teacher-pass" method="POST">
+        <input type="hidden" name="id" value="<%= result.teacher_id%>">
+   
+        <div>
+            <label for="teacher_pass">Change Password</label>
+    
+        <input type="text" class="form-control" id="teacher_pass" name="teacher_pass"
+            placeholder="New Password" required>   
+         </div>
+    
+         <button type="submit" class="btn-success" >Submit</button>
+
+
+
+    </form>
+
+</div>
+
+
+    </section>     
+   
+
+
+
+</body>
+</html>

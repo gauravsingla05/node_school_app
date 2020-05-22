@@ -38,13 +38,16 @@ const myDatabase = new Sequelize(config.DB, config.USER, config.PASSWORD, {
 const sequelizeSessionStore = new SessionStore({
     db: myDatabase,
 });
+var today = new Date();
+var date = today.getFullYear()+(today.getMonth()+1)+today.getDate();
+var time = today.getHours()+ '-' +today.getMinutes() +'-'+ today.getSeconds();
 
 const storageEngine = multer.diskStorage({
     destination:(req,file,cb)=>{
         cb(null,'./public/uploads')
     },
     filename:(req,file,cb)=>{
-        cb(null, file.filename + '-' +file.originalname)
+        cb(null, `${date} img${time} ${file.originalname}`)
     }
     
     }) 
@@ -74,36 +77,42 @@ app.use('/',routes)
 
 
 
-TEACHER.belongsTo(SINGLE_STUDENT_NOTIFICATION,{
-    foreignKey:'teacher_id',
-    onDelete: 'cascade' ,  
-})
+// TEACHER.belongsTo(SINGLE_STUDENT_NOTIFICATION,{
+//     foreignKey:'teacher_id',
+//     onDelete: 'cascade' ,  
+//     onUpdate:'cascade'
+// })
 
-SINGLE_STUDENT_NOTIFICATION.hasMany(TEACHER,{
-    foreignKey:'teacher_id',
-    onDelete: 'cascade' ,
-})
+// SINGLE_STUDENT_NOTIFICATION.hasMany(TEACHER,{
+//     foreignKey:'teacher_id',
+//     onDelete: 'cascade' ,
+//     onUpdate:'cascade'
+// })
 
 
-STUDENTS.belongsTo(SINGLE_STUDENT_NOTIFICATION,{
-    foreignKey:'student_id',
-    onDelete: 'cascade' ,  
-})
+// STUDENTS.belongsTo(SINGLE_STUDENT_NOTIFICATION,{
+//     foreignKey:'student_id',
+//     onDelete: 'cascade' ,  
+//     onUpdate:'cascade'
+// })
 
-SINGLE_STUDENT_NOTIFICATION.hasMany(STUDENTS,{
-    foreignKey:'student_id',
-    onDelete: 'cascade' ,
-})
+// SINGLE_STUDENT_NOTIFICATION.hasMany(STUDENTS,{
+//     foreignKey:'student_id',
+//     onDelete: 'cascade' ,
+//     onUpdate:'cascade'
+// })
 
 
 SECTIONS.belongsTo(CLASS,{
     foreignKey:'class_id',
     onDelete: 'cascade' ,
+    onUpdate:'cascade'
     })
     
     CLASS.hasMany(SECTIONS,{
         foreignKey:'class_id',
         onDelete: 'cascade' ,
+        onUpdate:'cascade'
     })
 
 
@@ -114,23 +123,28 @@ SECTIONS.belongsTo(CLASS,{
     SUBJECTS.belongsTo(SECTIONS,{
     foreignKey:'section_id',
     onDelete: 'cascade' ,
+    onUpdate:'cascade'
         })
                 
     SECTIONS.hasMany(SUBJECTS,{
     foreignKey:'section_id',
     onDelete: 'cascade' ,
+    onUpdate:'cascade'
         })
 
 
-        ATTENDANCE.belongsTo(STUDENTS,{ 
-    foreignKey:'student_id',
-    onDelete: 'cascade' ,
-        })
+//         ATTENDANCE.belongsTo(STUDENTS,{ 
+//     foreignKey:'student_id',
+//     onDelete: 'cascade' ,
+//     onUpdate:'cascade'
+    
+//         })
            
-        STUDENTS.hasMany(ATTENDANCE,{
-    foreignKey:'student_id',
-    onDelete: 'cascade' ,
-})
+//         STUDENTS.hasMany(ATTENDANCE,{
+//     foreignKey:'student_id',
+//     onDelete: 'cascade' ,
+//     onUpdate:'cascade'
+// })
   
 
  const PORT = process.env.PORT || 3000;
@@ -140,3 +154,4 @@ sequelizedb.sync().then(result=>{
     }) 
 })  
 //{force:true}
+ 

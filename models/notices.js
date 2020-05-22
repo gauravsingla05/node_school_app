@@ -4,7 +4,8 @@ module.exports = sequelize.define('notices',{
     notice_id:{
         type:Sequelize.INTEGER,
         autoIncrement:true,
-        primaryKey:true
+        primaryKey:true,
+        unique: true,
     },
     notice_title:{
         type:Sequelize.TEXT,

@@ -11,18 +11,26 @@ const LOGINS = require('../../models/logins')
 const BUSES = require('../../models/buses')
 const bcrypt = require('bcrypt');
 const DRIVER = require('../../models/drivers')
+const LEAVES = require('../../models/leaves')
+var TEACHER_NOTICES = require('../../models/teacher_notice')
 const jwt = require('jsonwebtoken')
 var sequelize = require('sequelize')
 const config  = require('../../config/config')
 const secret = require('../../config/secret')
 var config_fcm = require('../../config/fcm-config')
 var admin = require("firebase-admin");
-let date_obj = new Date();
-let todaydate = ("0" + date_obj.getDate()).slice(-2);
-// current month
-let todaymonth = ("0" + (date_obj.getMonth() + 1)).slice(-2);
-// current year
-let todayyear = date_obj.getFullYear();
+var date_obj = new Date();
+var todaydate = ("0" + date_obj.getDate()).slice(-2);
+var todaymonth = ("0" + (date_obj.getMonth() + 1)).slice(-2);
+var todayyear = date_obj.getFullYear();
+
+
+function stringToDate(date){
+    var dateString = date
+    var dateParts = dateString.split("-");
+    var dateObject = new Date(+dateParts[2], dateParts[1] - 1, +dateParts[0]); 
+    return dateObject;
+}
 
 exports.post_attance_of_students = (req,res)=>{
 
@@ -52,6 +60,7 @@ jsondata.forEach((v,k)=>{
                     }
                     ).then(result=>{
                         console.log('data updated')
+                        res.status(200).send('marked')
                     })
        }
        else{
@@ -61,7 +70,7 @@ jsondata.forEach((v,k)=>{
                         status:v.status,
                         date:currentDate
                     }).then(result=>{   
-                       
+                        res.status(200).send('marked')
                        console.log('marked')
                     })
        }
@@ -106,7 +115,7 @@ exports.post_notice = (req,res)=>{
 }
 
 exports.post_teacher_logins = (req,res)=>{
-    var {username,pass} = req.body
+    var {username,pass,teacher_fcm_token} = req.body
     
     TEACHERS.findAll(
         {
@@ -132,8 +141,19 @@ exports.post_teacher_logins = (req,res)=>{
                                 id:result[0].teacher_id,
                                 token:token
                             }
-                        
-                        res.status(200).json(response)
+                            TEACHERS.update(
+                                {
+                                    teacher_fcm_token:teacher_fcm_token
+                               },
+                                {
+                                    where:{
+                                        teacher_email:username,
+                                     }
+                            }).then(tokenUpdated=>{
+                                console.log('updated')
+                                res.status(200).json(response)
+                            })
+                       
                         }
                           
                           )
@@ -205,6 +225,18 @@ exports.get_teacher_detail_by_id = (req,res)=>{
         
     })
 }
+
+exports.fetch_all_teachers = (req,res)=>{
+    TEACHERS.findAll(
+        {attributes: { exclude: ["teacher_pass"] }
+    }).then(result=>{
+        console.log(JSON.stringify(result))
+        res.status(200).json(result)
+       
+        
+    })
+}
+
 
 exports.get_subjets_by_section = (req,res)=>{
 
@@ -286,26 +318,26 @@ var {notification,
 
 
 
-
 SINGLE_STUDENT_NOTIFICATION.create({
     notification,
     student_id,
     teacher_id,
+    single_student_notification_date: `${todaydate}-${todaymonth}-${todayyear}`
 }).then(result=>{
     
     STUDENTS.findAll({
-        where:{
+        where:{ 
             student_id:student_id
         }
     }).then(studentFound=>{
         if(studentFound!=''){
 
-           console.log(studentFound[0].student_fcm_token)
+          
            
            var options =  config_fcm.options
            var message_notification = {
             notification: {
-               title: 'Teacher sent you a message',
+               title: 'Teacher has sent you a message',
                body: notification
                    }
             };
@@ -569,7 +601,16 @@ exports.get_notice_by_class =async(req,res)=>{
     }).then(result=>{
         if(result!=null){
            result.forEach((k,v)=>{
-               data.push(k)
+
+
+               var response = {
+                   title:k.notice_title,
+                   description:k.notice_description,
+                   date:k.notice_display_date,
+                   author:k.notice_author
+               }
+               data.push(response)
+               
            })
           
         }
@@ -582,7 +623,13 @@ exports.get_notice_by_class =async(req,res)=>{
         }).then(Allresult=>{
             if(Allresult!=null){
                 Allresult.forEach((k,v)=>{
-                    data.push(k)
+                    var response = {
+                        title:k.notice_title,
+                        description:k.notice_description,
+                        date:k.notice_display_date,
+                        author:k.notice_author
+                    }
+                    data.push(response)
                 })
 
             }
@@ -595,12 +642,28 @@ exports.get_notice_by_class =async(req,res)=>{
                 student_id:std_id}
         }).then(single_notifications=>{
             if(single_notifications!=''){
-               console.log(single_notifications)
+                
                 single_notifications.forEach((singleData,v)=>{
-                    data.push(singleData)
+                    
+                    var response = {
+                        title:'new notification',
+                        description:singleData.notification,
+                        date:singleData.single_student_notification_date,
+                        author:'teacher'
+                    }
+                    data.push(response)
                 })
             }
-            res.status(200).json(data)
+           var sorted = data.sort(function(a, b) {
+
+            var noticeDateA = stringToDate(a.date)
+            var   noticeDateB = stringToDate(b.date)
+         
+                var c = new Date(noticeDateA);
+                var d = new Date(noticeDateB);
+                return c-d;
+            });
+            res.status(200).json(sorted)
         })
     
     
@@ -645,4 +708,190 @@ exports.post_student_dp = (req,res)=>{
     
 
  
+}
+
+
+exports.apply_student_leave =async(req,res)=>{
+         var teacher_id = req.body.teacher_id
+         var std_id = req.params.std_id
+            console.log('***',teacher_id)
+         var leave_reason = req.body.leave_reason
+         var leave_from_date = req.body.leave_from_date
+         var leave_upto_date = req.body.leave_upto_date
+         var leave_status = req.body.leave_status
+
+
+         var studentName = await STUDENTS.findAll({where:{student_id:std_id}})
+
+         LEAVES.create({
+            leave_reason,
+            leave_from_date,
+            leave_upto_date,
+            leave_status,
+            leave_by_student:std_id,
+            leave_incharge_teacher:teacher_id,
+            student_dp:studentName[0].student_dp,
+            student_roll_no:studentName[0].student_roll_no,
+            student_name:studentName[0].student_name
+         }).then(result=>{
+             TEACHERS.findAll(
+                {where:{teacher_id:teacher_id},attributes: { exclude: ["teacher_pass"] }
+            }).then(teacherFound=>{
+                    console.log(teacherFound[0].teacher_email)
+                    var options =  config_fcm.options
+                    var message_notification = {
+                     notification: {
+                        title: `${studentName[0].student_name} has sent you leave request`,
+                        body:  `${studentName[0].student_name} want leave from ${leave_from_date} to ${leave_upto_date}`,
+                            }
+                     };
+   
+                         
+                     admin.messaging().sendToDevice(teacherFound[0].teacher_fcm_token,
+                         message_notification, options)
+                    .then( response => {
+                    TEACHER_NOTICES.create({
+                        teacher_notification:`${studentName[0].student_name} has sent you leave request`,
+                        teacher_id:teacherFound[0].teacher_id,
+                        teacher_notice_date:`${todaydate}-${todaymonth}-${todayyear}`
+                    }).then(teacherNotice=>{
+                        res.send('posted')
+                        console.log('sent')
+                    })
+                    })
+                    .catch( error => {
+                        console.log(error);
+                    });
+                      
+                   
+             })
+         })
+}
+
+exports.get_student_leaves = (req,res)=>{
+    LEAVES.findAll({
+        where:{
+            leave_by_student:req.params.id
+        },
+        order: [
+            ['leave_id', 'DESC'],
+        
+        ],
+    }).then(result=>{
+        res.status(200).json(result)
+    })
+}
+
+exports.get_leave_requests_for_teacher = (req,res)=>{
+    LEAVES.findAll({
+        where:{
+            leave_incharge_teacher:req.params.id,
+            leave_status:'pending'
+        },
+    }).then(result=>{
+        res.status(200).json(result)
+    })
+}
+
+exports.approve_leave = async(req,res)=>{
+   
+    var leave_id = req.body.leave_id
+    var findLeave = await LEAVES.findAll({where:{leave_id:leave_id}})
+    LEAVES.update(
+        {
+            leave_status:'approved'
+       },
+        {
+            where:{
+                leave_id:leave_id,
+             }
+    }).then(tokenUpdated=>{
+     
+        STUDENTS.findAll({
+            where:{
+                student_id:findLeave[0].leave_by_student
+            }
+        }).then(foundResult=>{
+            var options =  config_fcm.options
+            var message_notification = {
+                notification: {
+                   title: 'Your Leave has been approved by teacher',
+                   body: `leave from ${findLeave[0].leave_from_date} to ${findLeave[0].leave_upto_date} is approved`
+                       }
+                };
+                    
+            //     admin.messaging().sendToDevice(foundResult[0].student_fcm_token,
+            //         message_notification, options)
+            //    .then( response => {
+            //     res.status(200).json('approved')
+            //       console.log('sent')
+            //    })
+            //    .catch( error => {
+            //        console.log(error);
+            //    });
+            res.status(200).json('approved')
+        })
+        
+        
+  
+
+    })
+}
+
+exports.delete_leave = async(req,res)=>{
+    var leave_id = req.body.leave_id
+    var findLeave = await LEAVES.findAll({where:{leave_id:leave_id}})
+    LEAVES.update(
+        {
+            leave_status:'rejected'
+       },
+        {
+            where:{
+                leave_id:leave_id,
+             }
+    }).then(tokenUpdated=>{
+       
+        STUDENTS.findAll({
+            where:{
+                student_id:findLeave[0].leave_by_student
+            }
+        }).then(foundResult=>{
+            var options =  config_fcm.options
+            var message_notification = {
+                notification: {
+                   title: 'Your Leave has rejected',
+                   body: `leave from ${findLeave[0].leave_from_date} to ${findLeave[0].leave_upto_date} is rejected, please contact to the teacher`
+                       }
+                };
+                    
+                admin.messaging().sendToDevice(foundResult[0].student_fcm_token,
+                    message_notification, options)
+               .then( response => {
+                res.status(200).json('rejected')
+                  console.log('sent')
+               })
+               .catch( error => {
+                   console.log(error);
+               });
+        })
+        
+        
+  
+
+    })
+}
+
+
+exports.get_teacher_notices = (req,res)=>{
+TEACHER_NOTICES.findAll({
+    where:{
+        teacher_id:req.params
+    },
+    order: [
+        ['teacher_notification_id', 'DESC'],
+    
+    ],
+}).then(result=>{
+    res.status(200).json(result)
+})
 }

@@ -12,6 +12,7 @@
 </head>
 <body>
    <section>
+      
             <form action="/logout" method="POST">
             
                 <button class="btn btn-success"style="float: right" type="submit" >Logout</button>
@@ -23,10 +24,13 @@
            <h2 style="margin: 0;">Dashboard</h2>
        </header>
    
-       <%- include('sidebar') %>
+      <div>
+        <%- include('sidebar') %>
+      </div>
+     
     <div class="main_content">
      <div>  
-      
+            <h3 style="background-color: red; color: white;"><%= error%></h3>
         <form class="" action="/add-teacher" method="POST" enctype="multipart/form-data">
             <div class="form-group">
                
@@ -42,7 +46,7 @@
                 <label for="teacher_dob">Date of birth</label>
 
             <input type="date" class="form-control" id="teacher_dob" name="teacher_dob"
-                placeholder="Teacher Dob" required   
+                placeholder="Teacher Dob" required >  
         </div>
 
         <div>
@@ -86,11 +90,70 @@
 
      
     </div>
+    <center><h3>TEACHERS LIST</h3></center>
+    <div class="table-body">
+        <table id="table_id" class="display">
+            <thead style="background-color:rgb(255, 255, 255)">
+                <tr>
+                    <th>ID</th>
+                    <th>NAME</th>
+                    <th>EMAIL</th>
+                    <th>DoB</th>
+                    <th>PHONE</th>
+                    <th>IMAGE</th>
+                    <th>EDIT</th>
+                    <th>DELETE</th>      
+                </tr>
+        
+            </thead>
+        
+           
+             <tbody>
+                    <% for(var data of teachers) { %>
+                        <tr name="<%= data.teacher_id %>">
+                            <td><%= data.teacher_id %></td>
+                            <td> <%= data.teacher_name %></td>
+                            <td> <%= data.teacher_email %></td>
+                            <td> <%= data.teacher_dob %></td>
+                            <td> <%= data.teacher_phone %></td>
+                            <td><img src="<%= data.teacher_dp%>" alt="not loaded" height="50" width="50"></td>
+                            <td><a href="edit-teacher/<%= data.teacher_id%>">Edit</a></td>
+                            <td><button onclick="deleteTeacher('<%= data.teacher_id %>')">Delete</button></td>
+                        </tr>
+        
+                        <%}%>
+                
+                        </tbody>
+                        </table>
+     </div>
     </div>
    
     </section>     
    
+<script>
 
+function deleteTeacher(selectedTeahcer){
+    $.ajax({
+   
+   url: '/ajax-delete-teacher',
+   type: 'POST',
+   data: { selectedTeahcer: selectedTeahcer },
+   success: function (result) {
+       
+                              
+    if(result.status == 'true'){
+                $(`[name= ${result.selectedTeahcer}]`).remove();
+          }
+          else{
+              alert('something went wrong');
+          }
+        
+           
+        }
+     });
+}
+
+</script>
 
 
 </body>

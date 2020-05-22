@@ -14,6 +14,7 @@ router.get('/get-classes',verifytoken,get_data_contoller.get_all_classes)
 router.get('/get-section-by-class/:id',verifytoken,get_data_contoller.get_sections_by_class)
 router.get('/get-students-by-section/:id',verifytoken,get_data_contoller.get_students_by_section)
 router.get('/get-teacher-detail/:id',get_data_contoller.get_teacher_detail_by_id)
+router.get('/all-teachers',verifytoken,get_data_contoller.fetch_all_teachers)
 router.get('/get-subjets-by-section/:id',verifytoken,get_data_contoller.get_subjets_by_section)
 router.post('/post-home-work',get_data_contoller.post_home_work)
 router.get('/get-class-work-by-section/:id',get_data_contoller.get_class_work_by_section)
@@ -22,11 +23,15 @@ router.get('/get-student-by-id/:id',verifytoken,get_data_contoller.get_student_d
 router.get('/get-logined-student-list/',verifytoken,get_data_contoller.get_Logined_students_list)
 router.get('/get-student-attendence/:id',verifytoken,get_data_contoller.get_student_attendence)
 router.get('/get-notice-by-class/:id/:std_id',get_data_contoller.get_notice_by_class)
-
+router.get('/get-teacher-notice/:id',get_data_contoller.get_teacher_notices)
 router.get('/driver-by-id/:id',verifytoken,get_data_contoller.get_driver_by_id)
 router.get('/all-buses', verifytoken, get_data_contoller.get_all_buses)
-
 router.post('/post-student-dp/:id',get_data_contoller.post_student_dp)
+router.post('/apply-student-leave/:std_id',get_data_contoller.apply_student_leave)
+router.get('/get-student-leaves/:id',get_data_contoller.get_student_leaves)
+router.get('/get-leave-requests-for-teacher/:id',get_data_contoller.get_leave_requests_for_teacher)
+router.post('/approve-leave',get_data_contoller.approve_leave)
+router.post('/delete-leave',get_data_contoller.delete_leave)
 
 module.exports =  router
 

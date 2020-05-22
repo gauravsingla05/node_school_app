@@ -69,7 +69,8 @@
                     <th>Mother Name</th>
                     <th>DoB</th>
                     <th>Address</th>
-                    <th>phone</th>
+                    <th>Phone</th>
+                    <th>Image</th>
                     <th>Edit</th>
                     <th>Delete</th>
         
@@ -110,7 +111,7 @@
 
 
            function findStudents() {
-    var class_section_id= $(choose_section).children("option:selected").val();
+           var class_section_id= $(choose_section).children("option:selected").val();
     $.ajax({
        
        url: '/ajax_find_students',
@@ -129,9 +130,10 @@
             var student_dob= result[index].student_dob;
             var student_address= result[index].student_address;
             var student_parents_phone= result[index].student_parents_phone;
-
+            var student_dp= result[index].student_dp;
+       
             $('#table_test_id').append(
-                            '<tr><td>'
+                            '<tr name='+student_id+'><td>'
                             + (index+1)
                             + '</td><td class="limitspace">'
                             + student_name
@@ -148,9 +150,11 @@
                             + '</td><td>'
                             + student_parents_phone
                             + '</td><td>'
+                            + '<img src='+student_dp+' alt="not loaded" height="50" width="50">'   
+                            +  '</td><td>'
                             +  '<a href="/edit-student/'+ student_id+ '">Edit</a>'
                             + '</td><td>'
-                            +  '<a href="/delete-student/'+ student_id+ '">Delete</a>'
+                            +  '<button onclick="deletefun('+ student_id+ ')">Delete</button>'
                             + '</td></tr>'
                             )
                         }
@@ -163,7 +167,27 @@
 }
            
 
-
+function deletefun(id) {
+    console.log('called'+id);
+           $.ajax({
+   
+               url: '/ajax-delete-student',
+               type: 'POST',
+               data: { selected_student: id },
+               success: function (result) {
+                   
+                                          
+                if(result.status == 'true'){
+                            $(`[name= ${result.selected_student}]`).remove();
+                      }
+                      else{
+                          alert('something went wrong');
+                      }
+                    
+                       
+                    }
+                 });
+       } 
         </script>
 </body>
 </html>

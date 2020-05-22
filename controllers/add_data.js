@@ -3,6 +3,8 @@ const sequelize = require('../utils/database')
 const CLASS = require('../models/classes')
 const SECTIONS = require('../models/sections')
 const STUDENT = require('../models/students')
+var Sequelize = require('sequelize')
+const Op = require('Sequelize').Op;
 const TEACHER = require('../models/teachers')
 const SUBJECTS = require('../models/subjects')
 const LOGINS = require('../models/logins')
@@ -86,50 +88,60 @@ exports.ajax_find_section = (req,res)=>{
 
 
 
-exports.ajax_post_student = (req,res)=>{
-    var {student_name,student_roll_no,
-        student_father_name,student_mother_name
+exports.ajax_post_student = async(req,res)=>{
+    var {
+        student_name,
+         student_father_name,
+        student_mother_name
         ,student_dob,
         student_address,
         student_parents_phone
         ,choose_class,choose_section,
         student_adhaar_no,
         student_admsn_no,
-        student_gender,student_username} = req.body
-     console.log('***********',student_gender)
-  STUDENT.create({
-    student_roll_no:student_roll_no,
-    student_name:student_name,
-    student_father_name:student_father_name,
-    student_mother_name:student_mother_name,
-    student_class:choose_class,
-    student_section_id:choose_section,
-    student_dob:student_dob,
-    student_address:student_address,
-    student_parents_phone:student_parents_phone,
-    student_admsn_no:student_admsn_no,
-    student_adhaar:student_adhaar_no,
-    student_gender:student_gender,
-    student_username:student_username,
-    student_dp:'https://www.autobytesolutions.com/wp-content/uploads/2017/08/soltani_370-1-130x130.jpg'
+        student_gender,
+        student_roll_no,
+        student_username} = req.body
+     
+var findStundent = await STUDENT.findAll(
+    {
+        where: {
+            [Op.or]: [{student_username: student_username}, {student_roll_no: student_roll_no}]
+          }
+    })
 
-  }).then(result=>{
-      console.log('***',result.student_id)
+        
+if(findStundent!=''){
+   res.send('true')
+       
+} 
+else{
+    STUDENT.create({
+        student_roll_no:student_roll_no,
+        student_name:student_name,
+        student_father_name:student_father_name,
+        student_mother_name:student_mother_name,
+        student_class:choose_class,
+        student_section_id:choose_section,
+        student_dob:student_dob,
+        student_address:student_address,
+        student_parents_phone:student_parents_phone,
+        student_admsn_no:student_admsn_no,
+        student_adhaar:student_adhaar_no,
+        student_gender:student_gender,
+        student_username:student_username,
+        student_dp:'https://www.autobytesolutions.com/wp-content/uploads/2017/08/soltani_370-1-130x130.jpg'
+    
+      }).then(result=>{
+              res.redirect('add-student')
+              res.send('false')
+    }).catch(err=>{
+          console.log(err)
+      })
 
-      LOGINS.create({
-        username:student_username,
-        pass:student_dob,
-        status:'student',
-        student_id:result.student_id
-         }).then(result=>{
-            res.redirect('add-student')
-         })
+}
 
 
-      
-  }).catch(err=>{
-      console.log(err)
-  })    
 }
 
 
@@ -156,12 +168,12 @@ exports.get_edit_student = async(req,res)=>{
     var classes = await CLASS.findAll()
     var id = req.params.id
     STUDENT.findByPk(id).then(result=>{
-    res.render('edit_student',{title:'Edit Student',result:result,classes:classes})
+    res.render('edit_student',{title:'Edit Student',result:result,classes:classes,error:''})
         
     })
 }
 
-exports.post_edit_student = (req,res)=>{
+exports.post_edit_student = async(req,res)=>{
     var id = req.body.id
     var {student_name,
         student_roll_no,
@@ -175,46 +187,58 @@ exports.post_edit_student = (req,res)=>{
         student_adhaar_no,
         student_admsn_no} = req.body
      
-  STUDENT.update({
-    student_roll_no:student_roll_no,
-    student_name:student_name,
-    student_father_name:student_father_name,
-    student_mother_name:student_mother_name,
-    student_class:choose_class,
-    student_section_id:choose_section,
-    student_dob:student_dob,
-    student_address:student_address,
-    student_parents_phone:student_parents_phone,
-    student_admsn_no:student_admsn_no,
-    student_adhaar:student_adhaar_no
-
-  },{where:{student_id:id}}).then(result=>{
-      res.redirect('student-list')
-  }).catch(err=>{
-      console.log(err)
-  })    
+     if(choose_section!=''){
+        STUDENT.update({
+            student_roll_no:student_roll_no,
+            student_name:student_name,
+            student_father_name:student_father_name,
+            student_mother_name:student_mother_name,
+            student_class:choose_class,
+            student_section_id:choose_section,
+            student_dob:student_dob,
+            student_address:student_address,
+            student_parents_phone:student_parents_phone,
+            student_admsn_no:student_admsn_no,
+            student_adhaar:student_adhaar_no
+        
+          },{where:{student_id:id}}).then(result=>{
+              res.redirect('student-list')
+          }).catch(err=>{
+              console.log(err)
+          })  
+     }   
+     else{
+        var classes = await CLASS.findAll()
+        STUDENT.findByPk(id).then(result=>{
+            res.render('edit_student',{title:'Edit Student',result:result,classes:classes,error:'Choose section'})
+                
+            })
+     }
+  
 }
 
 exports.delete_student = (req,res)=>{
-    var id = req.params.id
-    
-    STUDENT.findAll({
-        where:{
-            student_id:id
+    var selected_student = req.body.selected_student
+    console.log(selected_student)
+    STUDENT.destroy({
+        where: {
+            student_id:selected_student
         }
-    }).then(result=>{
-        result.destroy().then(ok=>{
-            res.redirect('student-list')  
-
-        })
+      }).then(result=>{
+        var response = {
+            selected_student,
+            status:'true'
+        }
+    res.status(200).send(response)
     })
 }
 
-exports.add_teacher = (req,res)=>{
-    res.render('add_teacher',{title:'Add Teacher'})
+exports.add_teacher = async(req,res)=>{
+   var teachers = await TEACHER.findAll()
+    res.render('add_teacher',{title:'Add Teacher',teachers,error:''})
 }
 
-exports.post_add_teacher = (req,res)=>{
+exports.post_add_teacher = async(req,res)=>{
     var {teacher_name,
         teacher_dob,
         teacher_address,
@@ -224,7 +248,13 @@ exports.post_add_teacher = (req,res)=>{
     } = req.body
     var teacher_img_path = req.files
     
+var teacherFound = await TEACHER.findAll({where:{teacher_email}})
 
+if(teacherFound!=''){
+    var teachers = await TEACHER.findAll()
+    res.render('add_teacher',{title:'Add Teacher',teachers,error:'Teacher already exists'})
+}
+else{
     bcrypt.hash(teacher_pass, 10, function(err, hash) {
         
         TEACHER.create({
@@ -245,9 +275,98 @@ exports.post_add_teacher = (req,res)=>{
         }) 
 
 
-      });
+      }
+      );
+}
+ 
      
 
+}
+
+exports.post_teacher_change_pass = (req,res)=>{
+    var teacher_pass = req.body.teacher_pass
+
+
+    bcrypt.hash(teacher_pass, 10, function(err, hash) {
+        TEACHER.update({
+            teacher_pass:hash
+          
+            },{where:{teacher_id:req.body.id}}).then(result=>{
+                res.redirect('/add-teacher')
+            })
+    })
+
+
+}
+
+
+
+
+exports.get_edit_teacher = async(req,res)=>{
+var teacher = await TEACHER.findByPk(req.params.id)
+
+  res.render('edit_teacher',{title:'Edit',result:teacher})
+}
+
+exports.post_edit_teacher = async(req,res)=>{
+    var {teacher_name,
+        teacher_dob,
+        teacher_address,
+        teacher_phone,
+        teacher_email,
+        teacher_pass,
+
+    } = req.body
+    var teacher_img_path = req.files
+
+    var findTeacher = await TEACHER.findAll({where:{teacher_id:req.body.id}})
+
+    if(teacher_img_path!=''){
+        TEACHER.update({
+            teacher_name,
+            teacher_email,
+            teacher_phone,
+            teacher_dob,
+            teacher_address,
+            teacher_dp:teacher_img_path[0].path
+        
+          },{where:{teacher_id:req.body.id}}).then(result=>{
+              res.redirect('/add-teacher')
+          })
+    }
+   
+    else{
+        
+        TEACHER.update({
+            teacher_name,
+            teacher_email,
+            teacher_phone,
+            teacher_dob,
+            teacher_address,
+            teacher_pass:findTeacher[0].teacher_pass,
+            teacher_dp:findTeacher[0].teacher_dp
+        
+          },{where:{teacher_id:req.body.id}}).then(result=>{
+              res.redirect('/add-teacher')
+          })
+    }
+
+  
+}
+
+exports.delete_teacher = (req,res)=>{
+    var selectedTeahcer = req.body.selectedTeahcer
+    TEACHER.destroy({
+        where: {
+            teacher_id:selectedTeahcer
+        }
+      }).then(result=>{
+        var response = {
+            selectedTeahcer,
+            status:'true'
+        }
+    res.status(200).send(response)
+    })
 }
 
 exports.get_add_subject = async(req,res)=>{
@@ -277,6 +396,13 @@ exports.post_add_notice_to_students =async (req,res)=>{
         notice_author
     } = req.body
     
+   var splitDate = notice_date.split('-')
+
+   
+   var splitday = splitDate[2]
+   var splityear = splitDate[0]
+   var splitmonth = splitDate[1]
+
     const message_notification = {
         notification: {
            title: Notice_title,
@@ -294,7 +420,7 @@ exports.post_add_notice_to_students =async (req,res)=>{
         NOTICE.create({
             notice_title:Notice_title,
             notice_description:Notice_description,
-            notice_display_date:notice_date,
+            notice_display_date:`${splitday}-${splitmonth}-${splityear}`,
             notice_author:notice_author,
             notice_to_class:send_notice_class[i]
          }).then(result=>{
@@ -316,7 +442,7 @@ exports.post_add_notice_to_students =async (req,res)=>{
             
             
             for(var g=0;g<noticeToStudents.length;g++){
-                console.log(noticeToStudents[g].student_fcm_token)
+                
               admin.messaging().sendToDevice(noticeToStudents[g].student_fcm_token,
                    message_notification, options)
               .then( response => {
@@ -344,11 +470,30 @@ exports.post_add_notice_to_students =async (req,res)=>{
     NOTICE.create({
         notice_title:Notice_title,
         notice_description:Notice_description,
-        notice_display_date:notice_date,
+        notice_display_date:`${splitday}-${splitmonth}-${splityear}`,
         notice_author:notice_author,
         notice_to_all:'true'
      }).then(result=>{
-         res.redirect('/add-notice-to-students')           
+              
+         
+         STUDENT.findAll().then(result=>{
+             for(var i=0;i<result.length;i++){
+                 if(result[i].student_fcm_token!=''){
+                    admin.messaging().sendToDevice(result[i].student_fcm_token,
+                        message_notification, options)
+                   .then( response => {
+                  
+                      res.redirect('/add-notice-to-students')  
+                   })
+                   .catch( error => {
+                       console.log(error);
+                   });
+                 }
+                 }
+                
+         })
+         
+
      }).catch(err=>{
         console.log(err)
     })  
