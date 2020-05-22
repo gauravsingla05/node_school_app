@@ -820,16 +820,16 @@ exports.approve_leave = async(req,res)=>{
                        }
                 };
                     
-            //     admin.messaging().sendToDevice(foundResult[0].student_fcm_token,
-            //         message_notification, options)
-            //    .then( response => {
-            //     res.status(200).json('approved')
-            //       console.log('sent')
-            //    })
-            //    .catch( error => {
-            //        console.log(error);
-            //    });
-            res.status(200).json('approved')
+                admin.messaging().sendToDevice(foundResult[0].student_fcm_token,
+                    message_notification, options)
+               .then( response => {
+                res.status(200).json('approved')
+                  console.log('sent')
+               })
+               .catch( error => {
+                   console.log(error);
+               });
+            
         })
         
         
