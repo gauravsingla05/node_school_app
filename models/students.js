@@ -32,7 +32,7 @@ module.exports = sequelize.define('students',{
     student_address:{
         type:Sequelize.STRING,
     },
-    student_parents_phone:{
+    student_parents_phone:{ 
         type:Sequelize.STRING,
     },
     student_adhaar:{

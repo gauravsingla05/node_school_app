@@ -34,49 +34,60 @@ function stringToDate(date){
 
 exports.post_attance_of_students = (req,res)=>{
 
-//var currentDate = `${todayyear}, ${todaymonth}, ${todaydate}`
 
 var jsondata = req.body
  console.log(jsondata)
 
-jsondata.forEach((v,k)=>{
-   console.log(v.id) 
-
-   ATTENDANCE.findAll({
-       where:{
-        student_id:v.id, 
-        date:v.date
-       }
-   }).then(result=>{
-       if(result!=''){
-           
-           ATTENDANCE.update(
-                    {
-                        status:v.status
-                    },{
-                        where:{
-                            student_id:v.id,
-                            date:v.date}
-                    }
-                    ).then(result=>{
-                        console.log('data updated')
-                        res.status(200).send('marked')
-                    })
-       }
-       else{
-           console.log('No found')
-           ATTENDANCE.create({
-                        student_id:v.id,
-                        status:v.status,
-                        date:v.date
-                    }).then(result=>{   
-                        res.status(200).send('marked')
-                       console.log('marked')
-                    })
-       }
-   })
-
-})
+if(jsondata!=''){
+    jsondata.forEach((v,k)=>{
+        console.log(v.id) 
+     
+        ATTENDANCE.findAll({
+            where:{
+             student_id:v.id, 
+             date:v.date
+            }
+        }).then(result=>{
+            if(result!=''){
+                
+                ATTENDANCE.update(
+                         {
+                             status:v.status
+                         },{
+                             where:{
+                                 student_id:v.id,
+                                 date:v.date}
+                         }
+                         ).then(result=>{
+                             console.log('data updated')
+                             res.status(200).send('marked')
+                         })
+            }
+            else{
+                console.log('No found')
+                if(v.id!='' || v.status!='' || v.date!=''){
+                 ATTENDANCE.create({
+                     student_id:v.id,
+                     status:v.status,
+                     date:v.date
+                 }).then(result=>{   
+                     res.status(200).send('marked')
+                    console.log('marked')
+                 })
+                }else{
+                 res.status(200).send('something went wrong')
+                 console.log('something went wrong')
+                } 
+               
+            }
+        })
+     
+     })
+}
+else{
+    res.status(200).send('something went wrong')
+                 console.log('something went wrong')
+}
 
 }
 
@@ -259,11 +270,12 @@ exports.post_home_work =async (req,res)=>{
     
 
     CLASS_WORK.create({
-        class_section_id:section_id,
+        class_work_section_id:section_id,
         class_work_date:class_work_date,
-        work_detail: [{
-            [subjectName.subject_name]: class_work_description
-          }]
+        subject_name:subjectName.subject_name,
+        class_work_desc:class_work_description,
+
+
     }).then(result=>{
         
         console.log('Posted')
@@ -275,32 +287,16 @@ exports.post_home_work =async (req,res)=>{
 
 }
 
-exports.get_class_work_by_section = (req,res)=>{
+exports.get_class_work_dates_by_section = (req,res)=>{
     var data = new Array();
     var response;
 
     CLASS_WORK.findAll({
-        group: ['class_work_date'],
-        where:{
-            class_section_id:req.params.id,
-        }
+        attributes: ['class_work_date'],
+        group: ['class_work_date']
     }).then(result=>{
         
          
-       result.forEach((v,k)=>{
-           var mdate = v.class_work_date
-           var desc = v.class_work_discription
-           var subname = v.class_work_sub
-           response ={  
-               [mdate]:{
-                   desc,
-                   subname
-               }
-            }
-          data.push(response)
-
-       }
-       )
        res.status(200).json(result)
       //console.log(data)
     }).catch(err=>{
@@ -309,6 +305,22 @@ exports.get_class_work_by_section = (req,res)=>{
     }) 
 }
 
+exports.get_classwork_by_sec_id_by_date = (req,res)=>{
+    var date = req.params.date
+    var section_id = req.params.sec_id
+    CLASS_WORK.findAll({
+        where:{
+            class_work_date:date,
+            class_work_section_id:section_id
+        }
+    }).then(result=>{
+        res.status(200).json(result)
+    }).catch(err=>{
+        console.log(err)
+        res.status(200).send('Error')
+    }) 
+
+}
 
 exports.post_single_student_notification = (req,res)=>{
 var {notification,
@@ -498,8 +510,9 @@ exports.get_student_detail_by_id = (req,res)=>{
             student_id:req.params.id
         }
     }).then(result=>{
+        console.log(result)
         res.status(200).json(result)
-  
+         
     }).catch(err=>{
         res.send(err)
     })
