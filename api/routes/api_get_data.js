@@ -27,12 +27,12 @@ router.get('/get-notice-by-class/:id/:std_id',get_data_contoller.get_notice_by_c
 router.get('/get-teacher-notice/:id',get_data_contoller.get_teacher_notices)
 router.get('/driver-by-id/:id',verifytoken,get_data_contoller.get_driver_by_id)
 router.get('/all-buses', verifytoken, get_data_contoller.get_all_buses)
-router.post('/post-student-dp/:id',get_data_contoller.post_student_dp)
-router.post('/apply-student-leave/:std_id',get_data_contoller.apply_student_leave)
-router.get('/get-student-leaves/:id',get_data_contoller.get_student_leaves)
-router.get('/get-leave-requests-for-teacher/:id',get_data_contoller.get_leave_requests_for_teacher)
-router.post('/approve-leave',get_data_contoller.approve_leave)
-router.post('/delete-leave',get_data_contoller.delete_leave)
-
+router.post('/post-student-dp/:id',verifytoken,get_data_contoller.post_student_dp)
+router.post('/apply-student-leave/:std_id',verifytoken,get_data_contoller.apply_student_leave)
+router.get('/get-student-leaves/:id',verifytoken,get_data_contoller.get_student_leaves)
+router.get('/get-leave-requests-for-teacher/:id',verifytoken,get_data_contoller.get_leave_requests_for_teacher)
+router.post('/approve-leave',verifytoken,get_data_contoller.approve_leave)
+router.post('/delete-leave',verifytoken,get_data_contoller.delete_leave)
+ 
 module.exports =  router
 

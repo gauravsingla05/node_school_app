@@ -239,6 +239,7 @@ exports.get_teacher_detail_by_id = (req,res)=>{
 
 exports.fetch_all_teachers = (req,res)=>{
     TEACHERS.findAll(
+        {where: {teacher_fcm_token: { [sequelize.Op.not]: ''}}},
         {attributes: { exclude: ["teacher_pass"] }
     }).then(result=>{
         console.log(JSON.stringify(result))
@@ -727,7 +728,7 @@ exports.post_student_dp = (req,res)=>{
 exports.apply_student_leave =async(req,res)=>{
          var teacher_id = req.body.teacher_id
          var std_id = req.params.std_id
-            console.log('***',teacher_id)
+         
          var leave_reason = req.body.leave_reason
          var leave_from_date = req.body.leave_from_date
          var leave_upto_date = req.body.leave_upto_date
@@ -750,7 +751,7 @@ exports.apply_student_leave =async(req,res)=>{
              TEACHERS.findAll(
                 {where:{teacher_id:teacher_id},attributes: { exclude: ["teacher_pass"] }
             }).then(teacherFound=>{
-                    console.log(teacherFound[0].teacher_email)
+                    
                     var options =  config_fcm.options
                     var message_notification = {
                      notification: {
@@ -760,8 +761,7 @@ exports.apply_student_leave =async(req,res)=>{
                      };
    
                          
-                     admin.messaging().sendToDevice(teacherFound[0].teacher_fcm_token,
-                         message_notification, options)
+                     admin.messaging().sendToDevice(teacherFound[0].teacher_fcm_token,message_notification, options)
                     .then( response => {
                     TEACHER_NOTICES.create({
                         teacher_notification:`${studentName[0].student_name} has sent you leave request`,
@@ -770,9 +770,13 @@ exports.apply_student_leave =async(req,res)=>{
                     }).then(teacherNotice=>{
                         res.send('posted')
                         console.log('sent')
-                    })
+                    }).catch( errora => {
+                        res.send('something went wrong')
+                        console.log(errora);
+                    });
                     })
                     .catch( error => {
+                        res.send('something went wrong')
                         console.log(error);
                     });
                       
