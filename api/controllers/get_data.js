@@ -280,6 +280,7 @@ exports.post_home_work =async (req,res)=>{
     }).then(result=>{
         
         console.log('Posted')
+        res.status(200).send('done')
     }).catch(err=>{
         console.log(err)
     }) 
@@ -660,7 +661,7 @@ exports.get_notice_by_class =async(req,res)=>{
                 single_notifications.forEach((singleData,v)=>{
                     
                     var response = {
-                        title:'new notification',
+                        title:'Message from teacher',
                         description:singleData.notification,
                         date:singleData.single_student_notification_date,
                         author:'teacher'
@@ -671,12 +672,14 @@ exports.get_notice_by_class =async(req,res)=>{
            var sorted = data.sort(function(a, b) {
 
             var noticeDateA = stringToDate(a.date)
-            var   noticeDateB = stringToDate(b.date)
+            var noticeDateB = stringToDate(b.date)
          
                 var c = new Date(noticeDateA);
                 var d = new Date(noticeDateB);
-                return c-d;
+                return d-c;
             });
+
+           // const sortedActivities = activities.slice().sort((a, b) => b.date - a.date)
             res.status(200).json(sorted)
         })
     
